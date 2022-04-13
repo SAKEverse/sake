@@ -4,11 +4,19 @@ import os
 import sys
 import yaml
 import click
-load_path_yaml = 'settings.yaml'
+
+# add plot path
 parent_path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
 path = os.path.join(parent_path, 'sakeplot', 'plots')
 if path not in sys.path:
     sys.path.append(path)
+
+# create settings file if it does not exists
+temp_path_yaml = 'temp_settings.yaml'
+load_path_yaml = 'settings.yaml'
+if not os.path.isfile(load_path_yaml):
+    import shutil
+    shutil.copy(temp_path_yaml, load_path_yaml)
 ##### ------------------------------------------------------------------- #####
 
 def load_yaml(settings_path):
