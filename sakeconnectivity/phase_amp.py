@@ -35,23 +35,38 @@ def tort_mi(phase_array, amp_array):
     amp_array : array, instantenous amp
     """
     
-    phasebins = np.arange(-np.pi, np.pi, 0.2)                   # define phase bins
-    L = phasebins.shape[0] - 1                                  # get number of phase bins
-    ampmeans = np.zeros(L)                                      # vector to hold amplitude
-    phasemeans = np.zeros(L)                                    # vector to hold phase
+    # define phase bins
+    phasebins = np.arange(-np.pi, np.pi, 0.3)
+    L = phasebins.shape[0] - 1  
     
-    for k in range(L):                                          # For each phase bin,
-        pL = phasebins[k]                                       #... get lower phase limit,
-        pR = phasebins[k+1]                                     #... get upper phase limit.
-        indices = (phase_array>=pL) & (phase_array<pR)          # Find phases falling in this bin,
-        ampmeans[k] = np.mean(amp_array[indices])           #... compute mean amplitude,
-        phasemeans[k] = (pL+pR)/2                           #... save center phase.
-        
+    # # create phase amps
+    # phase_amps = pd.Series(data=amp_array, index=phase_array)
+    
+    # # get bin range for each phase
+    # idx = pd.Series(pd.cut(phase_amps.index, phasebins))
+    
+    # # groupby bin range
+    # ampmeans = phase_amps.groupby(idx).mean()
+    ampmeans = np.zeros(L)
+    idx = np.digitize(phase_array, phasebins, right=False)-1
+    for k in range(L):
+        ampmeans[k] = np.mean(amp_array[idx==k])
+    
     # Modulation Index
     amplP = ampmeans/np.sum(ampmeans)
     amplQ = np.ones(L)/(L)
     distKL = np.sum(amplP*np.log(amplP/amplQ))
     MI = distKL/np.log(L)
+      
+    # L = phasebins.shape[0] - 1                                  # get number of phase bins
+    # ampmeans = np.zeros(L)                                      # vector to hold amplitude
+    # # get index of phase bins
+    #---------------------------------
+    # idx = np.digitize(phase_array, phasebins, right=False)-1
+    #---------------------------------
+    # # get mean for each bin
+    # for k in range(L):
+    #     ampmeans[k] = np.mean(amp_array[idx==k])
 
     return ampmeans, phasebins, MI, phase_array, amp_array
 
@@ -78,7 +93,7 @@ class PhaseAmp:
         retLst=[]
         for name, group in self.event_df:
             retLst.append(self.get_event(group))
-        # retLst = Parallel(n_jobs=self.njobs)(delayed(func)(group) for name, group in self.event_df)
+        # retLst = Parallel(n_jobs=self.njobs)(delayed(self.get_event)(group) for name, group in self.event_df)
         return pd.concat(retLst)
     
     def get_event(self, df):
@@ -100,11 +115,17 @@ class PhaseAmp:
         
         # bin data based on user specifications   
         window_size = int(self.windowsize*self.fs)
-        bins = np.arange(0, signals[0].shape[0], window_size)
-        
+        bins = np.arange(0, signals[0].shape[0]-window_size, window_size)
+
         # calculate MI for each timebin (specified by user)
+        # vals = []
+        # for x in bins:
+        #     val = tort_mi(signals[0][x:x+window_size], signals[1][x:x+window_size])
+        #     vals.append(val)
+        # return vals
+    
         vals = [tort_mi(signals[0][x:x+window_size], signals[1][x:x+window_size])\
-                   for x in bins]
+                    for x in bins]
             
         # create dataframe
         out = pd.DataFrame([x[2] for x in vals], columns=['MI'])
@@ -221,7 +242,7 @@ if __name__ =='__main__':
     
     from preprocess import batch_downsample
     
-    path = r'C:\Users\panton01\Desktop\test_coherence'
+    path =  r'\\SUPERCOMPUTER2\Shared\acute_allo' # r'C:\Users\panton01\Desktop\test_coherence'
     new_fs = 250
     iter_freqs = [('lowtheta', 3, 6),('hightheta', 6, 12),\
                   ('beta', 13, 30),('gamma', 30, 80)]
