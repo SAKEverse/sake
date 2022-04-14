@@ -158,7 +158,7 @@ def plot(ctx, method):
     plotdf = data.groupby(group_cols).mean().reset_index().drop(columns='time',axis=1)
     plotdf = plotdf.set_index('animal')
     graph = GridGraph(ctx.obj['search_path'], 'test', plotdf, x='band')
-    graph.draw_graph('violin')
+    graph.draw_graph('box')
 
 # Execute if module runs as main program
 if __name__ == '__main__':
