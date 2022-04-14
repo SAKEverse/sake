@@ -156,7 +156,7 @@ class GetEvent:
         
         # get grouped df by freq events and calculate time bins
         self.event = 'region'
-        self.cols = ['band', 'low_freq', 'high_freq']
+        self.cols = ['band', ] #'low_freq', 'high_freq'
         self.processed = pd.DataFrame(self.processed.groupby(self.cols+[self.event])['phase'])
         self.bins = np.arange(0, self.processed.iloc[0,1].shape[0]-self.binsize, self.binsize)
         
@@ -220,13 +220,13 @@ class GetEvent:
             
         # create dataframe
         out = pd.concat(bands)
-        out['method'] = 'plv'
+        out.insert(0, 'method', len(out)*['plv'])
         if self.method == 'pli':
             cols = ['coherence', 'phase_diff']
             out[cols] = out['coherence'].apply(pd.Series).rename(columns={0:cols[0], 1:cols[1]})
             out['method'] = 'pli'
             
-        out.insert(0,'time', value=np.tile(self.bins/self.fs, len(out.band.unique())))
+        out.insert(1,'time', value=np.tile(self.bins/self.fs, len(out.band.unique())))
         
         return out
 
@@ -278,7 +278,7 @@ def bin_event_coh(df, binsize, fs, iter_freqs):
         out.loc[idx,'band'] = band[0]
 
     out = out[out['band'] !='']
-    out = out.groupby([ 'time', 'band', ])['coherence'].mean().reset_index()
+    out = out.groupby([ 'method','time','band', ])['coherence'].mean().reset_index()
     # out = out.groupby([ 'time', 'band', 'low_freq', 'high_freq',])['coherence'].mean().reset_index()
     return out
 
@@ -367,7 +367,7 @@ if __name__ =='__main__':
     #specify 'standard' frequency/bands
 
     coh_df = coherence_batch(downsampled_df, 
-                              iter_freqs, new_fs, 30, method= ['coh']) # ['coh', 'plv', 'pli']
+                              iter_freqs, new_fs, 30, method= ['plv']) # ['coh', 'plv', 'pli']
     
 
 
