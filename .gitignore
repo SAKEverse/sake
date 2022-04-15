@@ -128,5 +128,5 @@ dmypy.json
 # Pyre type checker
 .pyre/
 sakeplan/sakeplantest.py
-path.yaml
-settings.yaml
+*path.yaml
+*settings.yaml
