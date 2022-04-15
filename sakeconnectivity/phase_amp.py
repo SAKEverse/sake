@@ -2,7 +2,6 @@
 ##### ----------------------------- IMPORTS ----------------------------- #####
 import numpy as np
 import pandas as pd
-from numba import njit
 import itertools
 from tqdm import tqdm
 from joblib import delayed, Parallel
@@ -16,7 +15,7 @@ from preprocess import BatchFilter
 #           Functions and class to calculate Phase Amp Index
 # =============================================================================
 
-@njit
+
 def tort_mi(phase_array, amp_array):
     """
     Calculate Tort MI (Tort, 2010).
@@ -49,6 +48,7 @@ def tort_mi(phase_array, amp_array):
     # ampmeans = phase_amps.groupby(idx).mean()
     ampmeans = np.zeros(L)
     idx = np.digitize(phase_array, phasebins, right=False)-1
+    # print(idx.unique())
     for k in range(L):
         ampmeans[k] = np.mean(amp_array[idx==k])
     
