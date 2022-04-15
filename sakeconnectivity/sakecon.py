@@ -24,8 +24,11 @@ script_dir=os.path.dirname(os.path.realpath(__file__))
 
 coher_funcs = {'Spectral':'coh',"Phase Locking Value":'plv',"Phase Lag Index":"pli"}
 pac_funcs = {'Tort':'tort'}
+plot_types = {'Time Series':'time','Bar':'bar','Scatter':'scatter','Violin':'violin'}
 ui.coherFuncBox.addItems(coher_funcs.keys())
 ui.pacFuncBox.addItems(pac_funcs.keys())
+ui.pacPlotBox.addItems(plot_types.keys())
+ui.coherPlotBox.addItems(plot_types.keys())
 
 logo_path = os.path.join(script_dir,'logo',r'sake connectivity logo.png')
 ui.logoLabel.setPixmap(QPixmap(logo_path))
