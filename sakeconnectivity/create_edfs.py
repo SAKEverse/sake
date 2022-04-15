@@ -5,22 +5,22 @@ import numpy as np
 import pyedflib
 ##### ------------------------------------------------------------------- #####
 
-# def make_sine(t, freq:float, amp:float):
-#     """
-#     Create sine wave.
+def make_sine(t, freq:float, amp:float):
+    """
+    Create sine wave.
 
-#     Parameters
-#     ----------
-#     t : array, time
-#     freq : float, frequency
-#     amp : float, amplitude
+    Parameters
+    ----------
+    t : array, time
+    freq : float, frequency
+    amp : float, amplitude
 
-#     Returns
-#     -------
-#     array, sine wave
+    Returns
+    -------
+    array, sine wave
 
-#     """
-#     return np.sin(freq*t*np.pi*2) * amp
+    """
+    return np.sin(freq*t*np.pi*2) * amp
 
 class CohWaves:
     def __init__(self, mod_array, win=5, 
@@ -329,30 +329,30 @@ if __name__ == '__main__':
     # =============================================================================
     #               Plot pac
     # =============================================================================
-    import matplotlib.pyplot as plt
-    a = np.arange(0, 1.1, .1)
-    obj = ModWaves(np.array([]))
-    f,axs = plt.subplots(nrows=len(a))
-    axs = axs.flatten()
-    for i,mod in enumerate(a):
-        x,y = obj.create_mod_wave(mod, length=1)
-        axs[i].plot(y, label=str(mod))
-        axs[i].legend()
+    # import matplotlib.pyplot as plt
+    # a = np.arange(0, 1.1, .1)
+    # obj = ModWaves(np.array([]))
+    # f,axs = plt.subplots(nrows=len(a))
+    # axs = axs.flatten()
+    # for i,mod in enumerate(a):
+    #     x,y = obj.create_mod_wave(mod, length=1)
+    #     axs[i].plot(y, label=str(mod))
+    #     axs[i].legend()
         
     # =============================================================================
     #               Plot coherence
     # =============================================================================
-    import matplotlib.pyplot as plt
-    a = np.arange(0, 1, .3)
-    obj = CohWaves(np.array([]))
-    f,axs = plt.subplots(nrows=len(a))
-    axs = axs.flatten()
-    for i,coh in enumerate(a):
-        x,y = obj.create_coh_waves(coh, length=1)
-        axs[i].plot(x)
-        axs[i].plot(y, label=str(coh))
-        axs[i].legend()
-    # =============================================================================
+    # import matplotlib.pyplot as plt
+    # a = np.arange(0, 1, .3)
+    # obj = CohWaves(np.array([]))
+    # f,axs = plt.subplots(nrows=len(a))
+    # axs = axs.flatten()
+    # for i,coh in enumerate(a):
+    #     x,y = obj.create_coh_waves(coh, length=1)
+    #     axs[i].plot(x)
+    #     axs[i].plot(y, label=str(coh))
+    #     axs[i].legend()
+    # # =============================================================================
     #               # Plot simulated data
     # =============================================================================
     # obj = EdfMaker(properties)
