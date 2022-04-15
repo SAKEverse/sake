@@ -86,7 +86,9 @@ ui.actionSettings.triggered.connect(lambda:openSettings())
 
 def plot_pac():
     msg=subprocess.run(["python", os.path.join(script_dir,r"cli.py"), "plot",
-                        "--method", "pac"])
+                        "--method", "pac",
+                        "--type", plot_types[ui.coherPlotBox.currentText()],
+                        ])
     if msg.returncode != 0:
         ui.errorBrowser.setText(_translate("mainWindow","ERROR: Could not plot... \nCheck terminal for errors..."))
         return
@@ -95,11 +97,13 @@ ui.pacPlotButton.clicked.connect(lambda:plot_pac())
 
 def plot_coher():
     msg=subprocess.run(["python", os.path.join(script_dir,r"cli.py"), "plot",
-                        "--method", "coherence"])
+                        "--method", "coherence",
+                        "--type", plot_types[ui.pacPlotBox.currentText()],
+                        ])
     if msg.returncode != 0:
         ui.errorBrowser.setText(_translate("mainWindow","ERROR: Could not plot... \nCheck terminal for errors..."))
         return
-    
+
 ui.coherPlotButton.clicked.connect(lambda:plot_coher())
 
 # Execute if module runs as main program
