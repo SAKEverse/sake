@@ -7,7 +7,7 @@ import pandas as pd
 import seaborn as sns
 from matplotlib import pyplot as plt
 import PyQt5
-from plots.tidy_to_pzfx import tidy_to_grouped
+from tidy_to_pzfx import tidy_to_grouped
 # mpl.use('TkAgg')
 ########## ---------------------------------------------------------------- ##########
 
