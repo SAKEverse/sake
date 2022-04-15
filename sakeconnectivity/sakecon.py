@@ -24,7 +24,7 @@ script_dir=os.path.dirname(os.path.realpath(__file__))
 
 coher_funcs = {'Spectral':'coh',"Phase Locking Value":'plv',"Phase Lag Index":"pli"}
 pac_funcs = {'Tort':'tort'}
-plot_types = {'Time Series':'time','Bar':'bar','Scatter':'scatter','Violin':'violin'}
+plot_types = {'Time Series':'time','Bar':'bar','Box':'box','Violin':'violin', 'Scatter': 'strip'}
 ui.coherFuncBox.addItems(coher_funcs.keys())
 ui.pacFuncBox.addItems(pac_funcs.keys())
 ui.pacPlotBox.addItems(plot_types.keys())
@@ -87,7 +87,7 @@ ui.actionSettings.triggered.connect(lambda:openSettings())
 def plot_pac():
     msg=subprocess.run(["python", os.path.join(script_dir,r"cli.py"), "plot",
                         "--method", "pac",
-                        "--type", plot_types[ui.coherPlotBox.currentText()],
+                        "--plottype", plot_types[ui.pacPlotBox.currentText()],
                         ])
     if msg.returncode != 0:
         ui.errorBrowser.setText(_translate("mainWindow","ERROR: Could not plot... \nCheck terminal for errors..."))
@@ -98,7 +98,7 @@ ui.pacPlotButton.clicked.connect(lambda:plot_pac())
 def plot_coher():
     msg=subprocess.run(["python", os.path.join(script_dir,r"cli.py"), "plot",
                         "--method", "coherence",
-                        "--type", plot_types[ui.pacPlotBox.currentText()],
+                        "--plottype", plot_types[ui.coherPlotBox.currentText()],
                         ])
     if msg.returncode != 0:
         ui.errorBrowser.setText(_translate("mainWindow","ERROR: Could not plot... \nCheck terminal for errors..."))

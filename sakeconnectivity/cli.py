@@ -135,8 +135,9 @@ def coherence(ctx, ws, method='coh'):
 
 @main.command()
 @click.option('--method', type=str, help='Analysis type (s), e.g. coherence')
+@click.option('--plottype', type=str, help='Analysis type (s), e.g. box')
 @click.pass_context
-def plot(ctx, method):
+def plot(ctx, method, plottype):
     """
     Interactive summary plot.
 
@@ -144,6 +145,7 @@ def plot(ctx, method):
     # check path
     check_path(ctx)
     
+    # import modules
     import pandas as pd
     from facet_plot_gui import GridGraph
     
@@ -151,17 +153,22 @@ def plot(ctx, method):
         file = 'phase_amp.pickle'
     elif method == 'coherence':
         file = 'coherence.pickle'
+     
+    # get data
+    data = pd.read_pickle(os.path.join(ctx.obj['search_path'], file))
     
     # convert data to appropriate plotting format
-    data = pd.read_pickle(os.path.join(ctx.obj['search_path'], file))
-    # group_cols = list(data.columns[data.columns.get_loc('time') +1 :-1]) +['animal']
-    # plotdf = data.groupby(group_cols).mean().reset_index().drop(columns='time',axis=1)
-    # breakpoint()
-    plotdf = data.drop(columns='method',axis=1)
-    plotdf = plotdf.set_index('animal')
-    graph = GridGraph(ctx.obj['search_path'], 'test', plotdf, x='time')
-    # graph.draw_graph('box')
-    graph.draw_psd()
+    if plottype == 'time':
+        plotdf = data.drop(columns='method', axis=1).set_index('animal')
+        graph = GridGraph(ctx.obj['search_path'], method+'.csv', plotdf, x=plottype)
+        graph.draw_psd()
+    else:
+        group_cols = list(data.columns[data.columns.get_loc('time') +1 :-1]) +['animal']
+        plotdf = data.groupby(group_cols).mean().reset_index().drop(columns='time', axis=1)
+        graph = GridGraph(ctx.obj['search_path'], method+'.csv', plotdf.set_index('animal'), x='band')
+        graph.draw_graph(plottype)
+
+    
 # Execute if module runs as main program
 if __name__ == '__main__':
     
