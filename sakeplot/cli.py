@@ -1,10 +1,18 @@
 ####### -------------------------- IMPORTS ------------------------ ########
 import os
+import sys
 import yaml
 import click
 import pandas as pd
 settings_yaml = 'settings.yaml'
 load_path_yaml = 'path.yaml'
+
+# add plot path
+parent_path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+path = os.path.join(parent_path, 'plots')
+if path not in sys.path:
+    sys.path.append(path)
+    
 ######## ---------------------------------------------------------- ########
 
 def load_yaml(settings_path):
@@ -271,7 +279,7 @@ def plot(ctx, freq, plot_type, kind):
         if category in categories:
             categories.remove(category)
     
-    from plots.facet_plot_gui import GridGraph
+    from facet_plot_gui import GridGraph
     if plot_type == 'power_area':
         from plots.psd_analysis import melted_power_area
         # get power area
@@ -322,7 +330,8 @@ def plot(ctx, freq, plot_type, kind):
         pdf_data = melted_power_dist(index_df, power_df, freq_range, categories)
 
         # Graph interactive PSD
-        GridGraph(ctx.obj['search_path'],  ctx.obj['psd_mat'], pdf_data).draw_dist()
+        GridGraph(ctx.obj['search_path'],  ctx.obj['psd_mat'],
+                  pdf_data, x='power').draw_dist()
         
         
 # Execute if module runs as main program

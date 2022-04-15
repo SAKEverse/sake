@@ -7,7 +7,7 @@ import click
 
 # add plot path
 parent_path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
-path = os.path.join(parent_path, 'sakeplot', 'plots')
+path = os.path.join(parent_path, 'plots')
 if path not in sys.path:
     sys.path.append(path)
 
