@@ -58,6 +58,7 @@ def butter_bandpass_filter(data, lowcut, highcut, fs, order=2):
     high = highcut/nyq
     b, a = signal.butter(order, [low, high], btype='bandpass')
     filt_data = signal.filtfilt(b, a, data)
+    
     return filt_data
 
 
@@ -145,6 +146,7 @@ class BatchFilter():
         hilbert_transform = signal.hilbert(lfp_df.filteredsig) 
         lfp_df['amp'] = np.abs(hilbert_transform)
         lfp_df['phase'] = np.angle(hilbert_transform, deg=False)
+
         return lfp_df
 
     def filter_eventdf(self, data, freq_dframe):
@@ -174,6 +176,7 @@ class BatchFilter():
         event_df = region_set.groupby(['region','band_name','low_freq','high_freq']) 
         func = self.lfpextract
         retLst = Parallel(n_jobs=int(multiprocessing.cpu_count()*.8))(delayed(func)(group) for name, group in event_df)
+
         return pd.concat(retLst)
 
 
@@ -191,77 +194,3 @@ if __name__ == '__main__':
     freq_dframe = pd.DataFrame.from_dict(iter_freqs)
     freq_dframe.columns = ['band_name','low_freq','high_freq']
 
-    # animal_df = list(downsampled_df.groupby(['animal_id','file_name','start_time']))
-
-    # for (animal, file_name, start_time), data in tqdm(animal_df):
-
-    #     processed = constructlfpbandlist(downsampled_df, freq_dframe)
- 
-
-
-
-
-
-
-
-
-
-
-
-  # # flip through each unique animal in dataset
-  # animal_df = list(index_df.groupby(['animal_id','file_name','start_time']))
-  
-  # # create copy dataframe to store data
-  # downsampleddf = index_df
-  # downsampleddf['signal'] = 0
-  # downsampleddf = downsampleddf.astype(object)
-  # for (animal, file_name, start_time), data in tqdm(animal_df):
-      
-  #     # get data and sampling rate
-  #     breakpoint()
-  #     fread = adi.read_file(os.path.join(main_path, data['folder_path'].iloc[0], data['file_name'].iloc[0]))
-  #     ch_data = [fread.channels[x].get_data(1, start_sample=data['start_time'].iloc[x], 
-  #                                   stop_sample=data['stop_time'].iloc[x]) for x in data['channel_id'].unique()]
-  #     fs = np.unique([x.fs[0] for x in fread.channels])[0]
-      
-  #     # downsample the data and pass to dataframe
-  #     downsampled = [downsample(x, fs, new_fs) for x in ch_data]
-  #     downsampleddf.loc[data.index.values, 'signal'] = pd.Series(downsampled, dtype=object)
-      
-  #     # update user on process
-  #     print('The recording for %s has been downsampled.' %(animal))
-
-        # # downsampled = [x[1] for x in downsampled]
-        #  # downsampled_t = [np.arange(0,len(x))*downsample_factor for x in downsampled]
-        # # #index out the downsampled signals based on downsampled time and start/stop times
-        # # tiled_signal = np.tile(downsampled,(len(IDdf)//2,1))
-        # # time_idx = [np.where((downsampled_t[0]>=x) & (downsampled_t[0]<=y))[0] for x,y in\
-        # #   zip(np.asarray(IDdf['start_time']),np.asarray(IDdf['stop_time']))]
-        # # time_selected = [x[y] for x,y in zip(tiled_signal,time_idx)]
-        
-        # def filedetect(folder):
-        #     """
-        #     Takes in a directory path and searches for .adicht files that match the
-        #     verified index (SAKEPlan output) csv. Will return the appropriate 
-        #     files if they are found.
-
-        #     Parameters
-        #     ----------
-        #     folder : str, path to parent directory.
-
-        #     Returns
-        #     -------
-        #     idfile : str, name of verified index.
-        #     lbfile : list, of labchart files
-
-        #     """
-
-        #     file_list = os.listdir(folder)
-        #     lbfile = [os.path.join(folder, x) for x in file_list if '.adicht' in x] 
-        #     idfile = [x for x in file_list if 'index_verified.csv' in x] 
-        #     idfile = os.path.join(folder, idfile[0])
-            
-        #     if not all([len(lbfile)>0,len(idfile)>0]):
-        #         raise(Exception('Error: Labchart files or index file was not detected.\n'))
-
-        #     return idfile, lbfile
