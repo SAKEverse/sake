@@ -116,13 +116,6 @@ class PhaseAmp:
         # bin data based on user specifications   
         window_size = int(self.windowsize*self.fs)
         bins = np.arange(0, signals[0].shape[0]-window_size, window_size)
-
-        # calculate MI for each timebin (specified by user)
-        # vals = []
-        # for x in bins:
-        #     val = tort_mi(signals[0][x:x+window_size], signals[1][x:x+window_size])
-        #     vals.append(val)
-        # return vals
     
         vals = [tort_mi(signals[0][x:x+window_size], signals[1][x:x+window_size])\
                     for x in bins]
@@ -216,11 +209,11 @@ def phaseamp_batch(downsampled_df, iter_freqs, fs, windowsize):
     
     all_pa = []
     for (animal, file_name, start_time), data in tqdm(animal_df, desc='Calculating Phase Amp:'):
-
+        
         # filter
         processed = BatchFilter(fs).filter_eventdf(data, freq_dframe)
         phaseamp_df = get_filter_df(iter_freqs, processed)
-        
+
         # calculcate MI
         pa_couples = PhaseAmp(phaseamp_df, windowsize=windowsize,
                               fs=fs).run_parallel()
@@ -235,14 +228,14 @@ def phaseamp_batch(downsampled_df, iter_freqs, fs, windowsize):
     data = pd.concat(all_pa)
     s = data.pop('MI')
     data = pd.concat([data, s], axis=1)
-        
+    data.insert(1, 'method', len(data)*['tort'])
     return data.reset_index(drop=True)
 
 if __name__ =='__main__':
     
     from preprocess import batch_downsample
     
-    path =  r'\\SUPERCOMPUTER2\Shared\acute_allo' # r'C:\Users\panton01\Desktop\test_coherence'
+    path =  r'C:\Users\panton01\Desktop\test_pac' # r'C:\Users\panton01\Desktop\test_coherence' r'\\SUPERCOMPUTER2\Shared\acute_allo' 
     new_fs = 250
     iter_freqs = [('lowtheta', 3, 6),('hightheta', 6, 12),\
                   ('beta', 13, 30),('gamma', 30, 80)]
