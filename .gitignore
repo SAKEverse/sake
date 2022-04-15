@@ -128,4 +128,4 @@ dmypy.json
 # Pyre type checker
 .pyre/
 sakeplan/sakeplantest.py
-path.yaml
+sakeplot/path.yaml
