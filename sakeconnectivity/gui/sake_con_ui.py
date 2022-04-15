@@ -11,13 +11,13 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_mainWindow(object):
     def setupUi(self, mainWindow):
         mainWindow.setObjectName("mainWindow")
-        mainWindow.resize(1200, 600)
+        mainWindow.resize(1200, 700)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(mainWindow.sizePolicy().hasHeightForWidth())
         mainWindow.setSizePolicy(sizePolicy)
-        mainWindow.setMinimumSize(QtCore.QSize(1200, 600))
+        mainWindow.setMinimumSize(QtCore.QSize(1200, 700))
         font = QtGui.QFont()
         font.setPointSize(12)
         mainWindow.setFont(font)
@@ -131,7 +131,7 @@ class Ui_mainWindow(object):
         self.tabWidget.addTab(self.tab_2, "")
         self.gridLayout.addWidget(self.tabWidget, 2, 0, 2, 3)
         self.logoLabel = QtWidgets.QLabel(self.centralwidget)
-        self.logoLabel.setMinimumSize(QtCore.QSize(202, 157))
+        self.logoLabel.setMinimumSize(QtCore.QSize(300, 200))
         self.logoLabel.setMaximumSize(QtCore.QSize(202, 157))
         self.logoLabel.setText("")
         self.logoLabel.setScaledContents(True)
@@ -189,7 +189,7 @@ class Ui_mainWindow(object):
         self.menubar.addAction(self.menuFile.menuAction())
 
         self.retranslateUi(mainWindow)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(mainWindow)
 
     def retranslateUi(self, mainWindow):
@@ -202,7 +202,7 @@ class Ui_mainWindow(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("mainWindow", "Phase Amplitude Coupling"))
         self.coherCalcButton.setText(_translate("mainWindow", "Calculate Coherence"))
         self.label_3.setText(_translate("mainWindow", "Cohenrence Function:"))
-        self.label_6.setText(_translate("mainWindow", "TextLabel"))
+        self.label_6.setText(_translate("mainWindow", "Plot Type:"))
         self.coherPlotButton.setText(_translate("mainWindow", "Plot Coherence"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("mainWindow", "Coherence"))
         self.pacBinEdit.setText(_translate("mainWindow", "30"))
