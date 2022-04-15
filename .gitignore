@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 sakeplan/sakeplantest.py
 sakeplot/path.yaml
+sakeplot/path.yaml
