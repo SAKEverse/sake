@@ -8,8 +8,7 @@ import webbrowser
 from PyQt5 import QtCore, QtWidgets, QtTest 
 from gui.sake_con_ui import Ui_mainWindow
 from cli import load_yaml
-import os
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QMovie
 ##### ------------------------------------------------------------------- #####
 
 
@@ -30,8 +29,11 @@ ui.pacFuncBox.addItems(pac_funcs.keys())
 ui.pacPlotBox.addItems(plot_types.keys())
 ui.coherPlotBox.addItems(plot_types.keys())
 
-logo_path = os.path.join(script_dir,'logo',r'sake connectivity logo.png')
-ui.logoLabel.setPixmap(QPixmap(logo_path))
+logo_path = os.path.join(script_dir,'logo',r'sake connectivity logo.gif')
+movie=QMovie(logo_path)
+ui.logoLabel.setMovie(movie)
+movie.start()
+
 
 def setpath():
     """Set path to index file parent directory"""    
