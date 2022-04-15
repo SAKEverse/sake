@@ -37,6 +37,8 @@ class CohWaves:
         
     def create_coh_waves(self, jitter, length=30):
         
+        jitter 
+        
         # phase shift up to 360
         phase_shift = self.phase_shift%360
     
@@ -128,6 +130,9 @@ class ModWaves:
         y : array, amp of fast wave
      
         """  
+        if mod_level>1:
+            mod_level=1
+        mod_level = 1 - mod_level
         
         # get time vector
         dt = 1/self.fs
@@ -317,9 +322,36 @@ if __name__ == '__main__':
                                         np.linspace(.2,.2, mod_array_len),],
                         })
     
-    obj = EdfMaker(properties)
-    obj.create_edf()
+    # Create EDF
+    # obj = EdfMaker(properties)
+    # obj.create_edf()
     
+    # =============================================================================
+    #               Plot pac
+    # =============================================================================
+    import matplotlib.pyplot as plt
+    a = np.arange(0, 1.1, .1)
+    obj = ModWaves(np.array([]))
+    f,axs = plt.subplots(nrows=len(a))
+    axs = axs.flatten()
+    for i,mod in enumerate(a):
+        x,y = obj.create_mod_wave(mod, length=1)
+        axs[i].plot(y, label=str(mod))
+        axs[i].legend()
+        
+    # =============================================================================
+    #               Plot coherence
+    # =============================================================================
+    import matplotlib.pyplot as plt
+    a = np.arange(0, 1, .3)
+    obj = CohWaves(np.array([]))
+    f,axs = plt.subplots(nrows=len(a))
+    axs = axs.flatten()
+    for i,coh in enumerate(a):
+        x,y = obj.create_coh_waves(coh, length=1)
+        axs[i].plot(x)
+        axs[i].plot(y, label=str(coh))
+        axs[i].legend()
     # =============================================================================
     #               # Plot simulated data
     # =============================================================================
