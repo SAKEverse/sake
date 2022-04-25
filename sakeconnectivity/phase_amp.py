@@ -210,6 +210,10 @@ def phaseamp_batch(downsampled_df, iter_freqs, fs, windowsize):
     all_pa = []
     for (animal, file_name, start_time), data in tqdm(animal_df, desc='Calculating Phase Amp:'):
         
+        # check that 2 rows of data were grouped
+        if len(data) != 2:
+            continue
+        
         # filter
         processed = BatchFilter(fs).filter_eventdf(data, freq_dframe)
         phaseamp_df = get_filter_df(iter_freqs, processed)
