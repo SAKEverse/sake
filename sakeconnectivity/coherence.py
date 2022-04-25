@@ -316,7 +316,11 @@ def coherence_batch(downsampled_df, iter_freqs, fs, binsize, method='coh'):
     
     coh_df = []
     for (animal, file_name, start_time), data in tqdm(animal_df, desc='Calculating Coherence:'):
-
+        
+        # check that 2 rows of data were grouped
+        if len(data) != 2:
+            continue
+        
         # calculate spectral coherence
         coh_methods = []
         if 'coh' in method:
@@ -328,6 +332,7 @@ def coherence_batch(downsampled_df, iter_freqs, fs, binsize, method='coh'):
             
         # calculate coherence
         if 'plv' in method:
+            breakpoint()
             obj = GetEvent(processed, binsize, fs, iter_freqs, method='plv')
             coh = obj.all_freqs()
             coh_methods.append(coh)
