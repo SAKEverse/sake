@@ -114,7 +114,7 @@ def plot_pac():
     
     msg=subprocess.run(["python", os.path.join(script_dir,r"cli.py"), "plot",
                         "--method", "pac",
-                        "--plottype", plot_types[ui.coherPlotBox.currentText()],
+                        "--plottype", plot_types[ui.pacPlotBox.currentText()],
                         "--norm", get_norm_string(),
                         ])
     if msg.returncode != 0:
@@ -126,7 +126,7 @@ ui.pacPlotButton.clicked.connect(lambda:plot_pac())
 def plot_coher():
     msg=subprocess.run(["python", os.path.join(script_dir,r"cli.py"), "plot",
                         "--method", "coherence",
-                        "--plottype", plot_types[ui.pacPlotBox.currentText()],
+                        "--plottype", plot_types[ui.coherPlotBox.currentText()],
                         "--norm", get_norm_string(),
                         ])
     if msg.returncode != 0:
