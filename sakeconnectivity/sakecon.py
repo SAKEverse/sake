@@ -61,10 +61,7 @@ def setpath():
 ui.pathButton.clicked.connect(lambda:setpath())
 
 def pac():
-    #check for normalize
-    norm_string="false"
-    if ui.normCheckBox.isChecked():
-        norm_string="{}^{}".format(ui.normCol.currentText(),ui.normGroup.currentText())
+
     ui.errorBrowser.setText(_translate("mainWindow","Running PAC... Check Terminal for Progess Bar"))
     
     QtTest.QTest.qWait(100)
@@ -83,11 +80,6 @@ def pac():
 ui.pacCalcButton.clicked.connect(lambda:pac())
 
 def coherence():
-    #check for normalize
-    norm_string="false"
-    if ui.normCheckBox.isChecked():
-        norm_string="{}^{}".format(ui.normCol.currentText(),ui.normGroup.currentText())
-        
     ui.errorBrowser.setText(_translate("mainWindow","Running Coherence... Check Terminal for Progess Bar"))
     
     QtTest.QTest.qWait(100)
@@ -95,7 +87,7 @@ def coherence():
     msg=subprocess.run(["python", os.path.join(script_dir,r"cli.py"), "coherence",
                         "--ws", ui.pacBinEdit.text(),
                         "--method", coher_funcs[ui.coherFuncBox.currentText()],
-                        "--norm", norm_string])
+                        ])
     if msg.returncode != 0:
         ui.errorBrowser.setText(_translate("mainWindow","ERROR: Could not perform Coherence Calc... \nCheck terminal for errors..."))
         return
@@ -110,11 +102,20 @@ def openSettings():
     
 ui.actionSettings.triggered.connect(lambda:openSettings())
 
-def plot_pac():
+def get_norm_string():
+    #check for normalize
+    norm_string="false"
+    if ui.normCheckBox.isChecked():
+        norm_string="{}^{}".format(ui.normCol.currentText(),ui.normGroup.currentText())
+    print(norm_string)
+    return norm_string
 
+def plot_pac():
+    
     msg=subprocess.run(["python", os.path.join(script_dir,r"cli.py"), "plot",
                         "--method", "pac",
                         "--plottype", plot_types[ui.coherPlotBox.currentText()],
+                        "--norm", get_norm_string(),
                         ])
     if msg.returncode != 0:
         ui.errorBrowser.setText(_translate("mainWindow","ERROR: Could not plot... \nCheck terminal for errors..."))
@@ -126,6 +127,7 @@ def plot_coher():
     msg=subprocess.run(["python", os.path.join(script_dir,r"cli.py"), "plot",
                         "--method", "coherence",
                         "--plottype", plot_types[ui.pacPlotBox.currentText()],
+                        "--norm", get_norm_string(),
                         ])
     if msg.returncode != 0:
         ui.errorBrowser.setText(_translate("mainWindow","ERROR: Could not plot... \nCheck terminal for errors..."))
