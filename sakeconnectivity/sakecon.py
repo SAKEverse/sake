@@ -135,18 +135,6 @@ def plot_coher():
 
 ui.coherPlotButton.clicked.connect(lambda:plot_coher())
 
-def norm_changed():
-    """
-    Manual verification of PSDs
-    """
-    
-    # if ui.normCheckBox.isChecked():
-    #     subprocess.run(["python", os.path.join(script_dir,r"cli.py"), "normalize", "--enable", "true", "--column", ui.normCol.currentText(), "--group", ui.normGroup.currentText()])
-    # else:
-    #     subprocess.run(["python", os.path.join(script_dir,r"cli.py"), "normalize", "--enable", "false", "--column", ui.normCol.currentText(), "--group", ui.normGroup.currentText()])
-        
-    
-ui.normCheckBox.stateChanged.connect(lambda:norm_changed())
 
 def norm_col_changed():
     """
@@ -159,12 +147,10 @@ def norm_col_changed():
             ui.normGroup.addItems(['total_power'])
         else:
             ui.normGroup.addItems(index[ui.normCol.currentText()].unique())
-        norm_changed()
     except:pass
         
     
 ui.normCol.activated.connect(lambda:norm_col_changed())
-ui.normGroup.activated.connect(lambda:norm_changed())
 
 # Execute if module runs as main program
 if __name__ == '__main__': 
