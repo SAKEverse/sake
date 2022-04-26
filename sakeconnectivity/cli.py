@@ -27,6 +27,17 @@ def save_yaml(settings, settings_path):
     with open(settings_path, 'w') as file:
         yaml.dump(settings, file)
 
+def downsample(search_path, sake_index, new_fs, file_name='downsample.pickle'):
+    # downsample
+    import pandas as pd
+    from preprocess import batch_downsample
+    downsample_path = os.path.join(search_path, file_name)
+    if os.path.isfile(downsample_path):
+        downsampled_df = pd.read_pickle(downsample_path)
+    else:
+        downsampled_df = batch_downsample(search_path, sake_index, new_fs=new_fs)
+        downsampled_df.to_pickle(downsample_path)
+    return downsampled_df
 
 @click.group()
 @click.pass_context
@@ -86,8 +97,8 @@ def coupling(ctx, ws, method='tort'):
         return
     
     # downsample
-    from preprocess import batch_downsample
-    downsampled_df = batch_downsample(ctx.obj['search_path'], ctx.obj['sake_index'], new_fs=ctx.obj['new_fs'])
+    downsampled_df = downsample(ctx.obj['search_path'], ctx.obj['sake_index'],
+                                ctx.obj['new_fs'], file_name='downsample.pickle')
     click.secho(f"\n -> Data successfully downsampled to {ctx.obj['new_fs']} Hz'.\n", fg='green', bold=True)
     
     # get coupling index
@@ -122,8 +133,8 @@ def coherence(ctx, ws, method='coh'):
         return
     
     # downsample
-    from preprocess import batch_downsample
-    downsampled_df = batch_downsample(ctx.obj['search_path'], ctx.obj['sake_index'], new_fs=ctx.obj['new_fs'])
+    downsampled_df = downsample(ctx.obj['search_path'], ctx.obj['sake_index'],
+                                ctx.obj['new_fs'], file_name='downsample.pickle')
     click.secho(f"\n -> Data successfully downsampled to {ctx.obj['new_fs']} Hz'.\n", fg='green', bold=True)
     
     # calculate coherence
