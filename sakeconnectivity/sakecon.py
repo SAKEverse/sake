@@ -68,7 +68,7 @@ def pac():
     msg=subprocess.run(["python", os.path.join(script_dir,r"cli.py"), "coupling",
                         "--ws", int(ui.pacBinEdit.text()),
                         "--method", pac_funcs[ui.pacFuncBox.currentText()],
-                        "--norm", norm_string])
+                        ])
     if msg.returncode != 0:
         ui.errorBrowser.setText(_translate("mainWindow","ERROR: Could not perform PAC... \nCheck terminal for errors..."))
         return
