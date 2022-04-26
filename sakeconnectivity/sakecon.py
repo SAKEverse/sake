@@ -23,14 +23,16 @@ Dialog.show()
 _translate = QtCore.QCoreApplication.translate
 script_dir=os.path.dirname(os.path.realpath(__file__))
 
+#fill option boxes
 coher_funcs = {'Spectral':'coh',"Phase Locking Value":'plv',"Phase Lag Index":"pli"}
 pac_funcs = {'Tort':'tort'}
-plot_types = {'Time Series':'time','Bar':'bar','Scatter':'strip','Violin':'violin'}
+plot_types = {'Time Series':'time','Bar':'bar','Box':'box','Scatter':'strip','Violin':'violin'}
 ui.coherFuncBox.addItems(coher_funcs.keys())
 ui.pacFuncBox.addItems(pac_funcs.keys())
 ui.pacPlotBox.addItems(plot_types.keys())
 ui.coherPlotBox.addItems(plot_types.keys())
 
+#load gif logo
 logo_path = os.path.join(script_dir,'logo',r'sake connectivity logo.gif')
 movie=QMovie(logo_path)
 ui.logoLabel.setMovie(movie)
@@ -55,9 +57,7 @@ def setpath():
     msg=subprocess.run(["python", os.path.join(script_dir,r"cli.py"), "setpath", path],capture_output=True)
     ui.errorBrowser.setText(_translate("mainWindow",str(msg.stdout.decode())))
     update_norms()
-    
-
-    
+      
 ui.pathButton.clicked.connect(lambda:setpath())
 
 def pac():
@@ -138,7 +138,7 @@ ui.coherPlotButton.clicked.connect(lambda:plot_coher())
 
 def norm_col_changed():
     """
-    Manual verification of PSDs
+    updates the norm groups whenever the nor_col changes
     """
     try:
         index=pd.read_csv(os.path.join(ui.pathEdit.text(),'index.csv'))
