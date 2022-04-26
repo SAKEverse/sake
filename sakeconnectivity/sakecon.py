@@ -114,7 +114,7 @@ def plot_pac():
 
     msg=subprocess.run(["python", os.path.join(script_dir,r"cli.py"), "plot",
                         "--method", "pac",
-                        "--type", plot_types[ui.coherPlotBox.currentText()],
+                        "--plottype", plot_types[ui.coherPlotBox.currentText()],
                         ])
     if msg.returncode != 0:
         ui.errorBrowser.setText(_translate("mainWindow","ERROR: Could not plot... \nCheck terminal for errors..."))
@@ -125,7 +125,7 @@ ui.pacPlotButton.clicked.connect(lambda:plot_pac())
 def plot_coher():
     msg=subprocess.run(["python", os.path.join(script_dir,r"cli.py"), "plot",
                         "--method", "coherence",
-                        "--type", plot_types[ui.pacPlotBox.currentText()],
+                        "--plottype", plot_types[ui.pacPlotBox.currentText()],
                         ])
     if msg.returncode != 0:
         ui.errorBrowser.setText(_translate("mainWindow","ERROR: Could not plot... \nCheck terminal for errors..."))
