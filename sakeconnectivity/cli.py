@@ -149,7 +149,7 @@ def coherence(ctx, ws, method='coh'):
 @click.option('--plottype', type=str, help='Analysis type (s), e.g. box')
 @click.option('--norm', type=str, help='Enter col-value pair (s), e.g. treatment-baseline1')
 @click.pass_context
-def plot(ctx, method, plottype, norm=False):
+def plot(ctx, method, plottype, norm):
     """
     Interactive summary plot.
 
@@ -169,28 +169,28 @@ def plot(ctx, method, plottype, norm=False):
     # get data
     data = pd.read_pickle(os.path.join(ctx.obj['search_path'], file))
     
-    # normalize
-    norm = True
-    base_col = 'treatment'
-    base_val = 'baseline1'
-    if norm == True:
-        # breakpoint()
+    # attempt to initiate normalization
+    norm = norm.split('^')
+    if len(norm) == 2:
         from normalize import normalize
         y = data.columns[-1]
-        base_condition = {'col': base_col,
-                          'val': base_val}
-        categories = data.columns[:-1].tolist()
-        categories.remove(base_col)
-        data = normalize(data, y, base_condition, categories)
+        base_condition = {'col': norm[0], 'val': norm[1]}
         
     # convert data to appropriate plotting format
     if plottype == 'time':
-        plotdf = data.drop(columns='method', axis=1).set_index('animal')
+        plotdf = data
+        if len(norm) == 2:
+            categories = list(set(plotdf.columns[:-1]) - set([base_condition['col']]))
+            plotdf = normalize(plotdf, y, base_condition, categories)
+        plotdf = plotdf.drop(columns='method', axis=1).set_index('animal')
         graph = GridGraph(ctx.obj['search_path'], method+'.csv', plotdf, x=plottype)
         graph.draw_psd()
     else:
         group_cols = list(data.columns[data.columns.get_loc('time') +1 :-1]) + ['animal']
         plotdf = data.groupby(group_cols).mean().reset_index().drop(columns='time', axis=1)
+        if len(norm) == 2:
+            categories = list(set(plotdf.columns[:-1]) - set([base_condition['col']]))
+            plotdf = normalize(plotdf, y, base_condition, categories)
         graph = GridGraph(ctx.obj['search_path'], method+'.csv', plotdf.set_index('animal'), x='band')
         graph.draw_graph(plottype)
 
