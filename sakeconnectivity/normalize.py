@@ -29,8 +29,6 @@ def normalize(df, y, base_condition, match_cols):
     
     # create copy and add normalize
     data = df.copy()
-    # norm_y = 'norm_' + y
-    # data[norm_y] = 0
 
     # get unique conditions
     combi_list=[]
