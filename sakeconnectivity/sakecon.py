@@ -25,7 +25,7 @@ script_dir=os.path.dirname(os.path.realpath(__file__))
 
 coher_funcs = {'Spectral':'coh',"Phase Locking Value":'plv',"Phase Lag Index":"pli"}
 pac_funcs = {'Tort':'tort'}
-plot_types = {'Time Series':'time','Bar':'bar','Scatter':'scatter','Violin':'violin'}
+plot_types = {'Time Series':'time','Bar':'bar','Scatter':'strip','Violin':'violin'}
 ui.coherFuncBox.addItems(coher_funcs.keys())
 ui.pacFuncBox.addItems(pac_funcs.keys())
 ui.pacPlotBox.addItems(plot_types.keys())
@@ -66,7 +66,7 @@ def pac():
     
     QtTest.QTest.qWait(100)
     msg=subprocess.run(["python", os.path.join(script_dir,r"cli.py"), "coupling",
-                        "--ws", int(ui.pacBinEdit.text()),
+                        "--ws", int(ui.binEdit.text()),
                         "--method", pac_funcs[ui.pacFuncBox.currentText()],
                         ])
     if msg.returncode != 0:
@@ -85,7 +85,7 @@ def coherence():
     QtTest.QTest.qWait(100)
     print( os.path.join(script_dir,r"cli.py"))
     msg=subprocess.run(["python", os.path.join(script_dir,r"cli.py"), "coherence",
-                        "--ws", ui.pacBinEdit.text(),
+                        "--ws", ui.binEdit.text(),
                         "--method", coher_funcs[ui.coherFuncBox.currentText()],
                         ])
     if msg.returncode != 0:
