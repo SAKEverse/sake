@@ -332,7 +332,6 @@ def coherence_batch(downsampled_df, iter_freqs, fs, binsize, method='coh'):
             
         # calculate coherence
         if 'plv' in method:
-            breakpoint()
             obj = GetEvent(processed, binsize, fs, iter_freqs, method='plv')
             coh = obj.all_freqs()
             coh_methods.append(coh)
