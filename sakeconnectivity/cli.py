@@ -147,8 +147,9 @@ def coherence(ctx, ws, method='coh'):
 @main.command()
 @click.option('--method', type=str, help='Analysis type (s), e.g. coherence')
 @click.option('--plottype', type=str, help='Analysis type (s), e.g. box')
+@click.option('--norm', type=str, help='Enter col-value pair (s), e.g. treatment-baseline1')
 @click.pass_context
-def plot(ctx, method, plottype):
+def plot(ctx, method, plottype, norm=False):
     """
     Interactive summary plot.
 
@@ -168,13 +169,27 @@ def plot(ctx, method, plottype):
     # get data
     data = pd.read_pickle(os.path.join(ctx.obj['search_path'], file))
     
+    # normalize
+    norm = True
+    base_col = 'treatment'
+    base_val = 'baseline1'
+    if norm == True:
+        # breakpoint()
+        from normalize import normalize
+        y = data.columns[-1]
+        base_condition = {'col': base_col,
+                          'val': base_val}
+        categories = data.columns[:-1].tolist()
+        categories.remove(base_col)
+        data = normalize(data, y, base_condition, categories)
+        
     # convert data to appropriate plotting format
     if plottype == 'time':
         plotdf = data.drop(columns='method', axis=1).set_index('animal')
         graph = GridGraph(ctx.obj['search_path'], method+'.csv', plotdf, x=plottype)
         graph.draw_psd()
     else:
-        group_cols = list(data.columns[data.columns.get_loc('time') +1 :-1]) +['animal']
+        group_cols = list(data.columns[data.columns.get_loc('time') +1 :-1]) + ['animal']
         plotdf = data.groupby(group_cols).mean().reset_index().drop(columns='time', axis=1)
         graph = GridGraph(ctx.obj['search_path'], method+'.csv', plotdf.set_index('animal'), x='band')
         graph.draw_graph(plottype)
@@ -186,53 +201,3 @@ if __name__ == '__main__':
     # start
     main(obj={})
 
-
-
-
-# def normalize(df, y, base_condition, match_cols):
-#     """
-#     Normalize column in dataframe.
-
-#     Parameters
-#     ----------
-#     df: pd.DataFrame
-#     y : str, var name, e.g. power
-#     base_condition : dict, {col:column matching condition, e.g. treatment
-#                        val: str,  baseline  value, e.g. baseline}
-#     match_cols: list, column to match for normalization
-
-#     Returns
-#     -------
-#     None.
-
-#     """
-    
-#     # create copy and add normalize
-#     data = df.copy()
-#     norm_y = 'norm_' + y
-#     data[norm_y] = 0
-
-#     # get unique conditions
-#     combi_list=[]
-#     for col in match_cols:
-#         combi_list.append(data[col].unique())
-
-#     # normalize to baseline
-#     combinations = itertools.product(*combi_list)
-#     pbar = tqdm(desc='Normalizing', total=len(list(combinations)))
-#     for comb in itertools.product(*combi_list):       
-        
-#         # find unique treatments for each set of conditions
-#         idx = np.zeros((len(data), len(match_cols)))
-#         for i, col in enumerate(match_cols):
-#             idx[:,i] = data[col] == comb[i]
-#         temp = data[np.all(idx, axis=1)]
-        
-#         # normalize by baseline
-#         baseline_idx = temp.index[temp[base_condition['col']] == base_condition['val']][0]
-#         data.at[temp.index, norm_y] = data[y][temp.index] / data[y][baseline_idx]
-        
-#         pbar.update(1)   
-#     pbar.close()
-        
-#     return data, norm_y
