@@ -26,7 +26,7 @@ def get_file_data(folder_path:str, channel_structures:dict):
     """
     
     # make lower string and path type
-    folder_path = folder_path = os.path.normpath(folder_path.lower())
+    folder_path = os.path.normpath(folder_path.lower())
     file_data = pd.DataFrame()
     cntr = 0
     
