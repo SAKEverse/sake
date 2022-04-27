@@ -147,8 +147,7 @@ class GetComments:
         
         # create empty array for one category
         category_df = pd.DataFrame(columns = list(index_df.columns) + [self.category])
-        
-        comment_suffix = 1
+       
         for i,comment in enumerate(com_names): # iterate over comments in one category
             
             # create temporary dataframe column for one category
@@ -159,12 +158,13 @@ class GetComments:
             
             # reset index for new comment type
             if (i % len(self.com_match)) == 0:
-                comment_suffix = 1
-                
-            # get categories were comment is present  
+                comment_suffix = np.zeros(com_idx.shape[0], dtype=int)
+ 
+            # get categories where comment is present  
             if com_idx.any() == 1:
-                temp_df.at[com_idx, self.category] = comment + str(comment_suffix)
-                comment_suffix += 1
+                comment_suffix += com_idx.astype(int)
+                comment_name = np.array([comment + str(x) for x in comment_suffix])
+                temp_df.at[com_idx, self.category] = comment_name[com_idx]
                
             # get times from comment
             fs = np.array(index_df['sampling_rate'], dtype = float)                   # convert sampling rate form string to float
@@ -243,13 +243,18 @@ class GetComments:
             com_logic[:,cntr:cntr + temp_com_logic.shape[1]] = temp_com_logic
             com_time[:,cntr:cntr + temp_com_logic.shape[1]] = temp_com_time   
             cntr += temp_com_logic.shape[1] 
-    
+        
         # check if at least one comment is present in each file
         if com_logic.any(axis=1).all() == False:
             com_warning = 'Comments were not detected in all files. Some data might be ommited from indexing.'
         
         # add present comments along with their time
         index_df = self.get_comments_with_time(index_df, com_names, user_times, com_logic.astype(bool), com_time)
+        
+        # if only one condition present remove last string
+        last_string = index_df[self.category].str.strip().str[-1]
+        if np.all(last_string == '1'):
+            index_df[self.category] = index_df[self.category].str.strip().str[0:-1]
         
         return index_df, com_warning
         
