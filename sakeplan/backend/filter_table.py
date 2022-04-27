@@ -409,9 +409,9 @@ def get_index_array(folder_path, user_data):
     user_data = user_data.dropna(axis = 0)
 
     warning_str = ''
-    # ensure group names are unique
-    if len(user_data['Assigned Group Name']) != len(user_data['Assigned Group Name'].unique()):
-       warning_str += 'Duplicate -Assigned Group Names- were found. Please check that -Assigned Group Names- are unique'
+    # # ensure group names are unique
+    # if len(user_data['Assigned Group Name']) != len(user_data['Assigned Group Name'].unique()):
+    #    warning_str += 'Duplicate -Assigned Group Names- were found. Please check that -Assigned Group Names- are unique'
 
     # get channel order
     channel_structures = get_channel_structures(user_data)
