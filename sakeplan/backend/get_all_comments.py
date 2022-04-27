@@ -255,6 +255,9 @@ class GetComments:
         last_string = index_df[self.category].str.strip().str[-1]
         if np.all(last_string == '1'):
             index_df[self.category] = index_df[self.category].str.strip().str[0:-1]
+            
+        # sort dataframe based on categories and file id
+        index_df = index_df.rename_axis('file_id').sort_values(by=[self.category, 'file_id']).reset_index()
         
         return index_df, com_warning
         

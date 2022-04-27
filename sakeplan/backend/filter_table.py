@@ -354,9 +354,6 @@ def create_index_array(file_data, user_data):
     obj = GetComments(file_data, user_data_use, 'comment_text', 'comment_time')
     index_df, com_warning = obj.add_comments_to_index(index_df)
     
-    # reset index and rename previous index to file_id
-    index_df = index_df.rename_axis('file_id').reset_index()
-    
     # check if user selected time exceeds bounds
     if (index_df['start_time']<0).any() or (index_df['start_time']>index_df['file_length']).any():
         raise Exception('Start time exceeds bounds.')
