@@ -40,7 +40,7 @@ movie.start()
 
 def update_norms():
     try:
-        index=pd.read_csv(os.path.join(ui.pathEdit.text(),'index.csv'))
+        index=pd.read_csv(os.path.join(ui.pathEdit.text(),'index_verified.csv'))
 
         ui.normCol.clear()
         ui.normGroup.clear()
@@ -141,12 +141,9 @@ def norm_col_changed():
     updates the norm groups whenever the nor_col changes
     """
     try:
-        index=pd.read_csv(os.path.join(ui.pathEdit.text(),'index.csv'))
+        index=pd.read_csv(os.path.join(ui.pathEdit.text(),'index_verified.csv'))
         ui.normGroup.clear()
-        if ui.normCol.currentText() == 'transform':
-            ui.normGroup.addItems(['total_power'])
-        else:
-            ui.normGroup.addItems(index[ui.normCol.currentText()].unique())
+        ui.normGroup.addItems(index[ui.normCol.currentText()].unique())
     except:pass
         
     
