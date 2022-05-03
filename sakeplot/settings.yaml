@@ -39,8 +39,8 @@ norm_groups:
 normalize: 0
 outlier_threshold: 7
 outlier_window: 60
+paired: 1
 power_area_mat: power_area.csv
 psd_mat: psd.csv
 settigs_path: settings.yaml
 summary_plot_type: violin
-paired: 1

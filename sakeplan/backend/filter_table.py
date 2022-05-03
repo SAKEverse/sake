@@ -26,7 +26,7 @@ def get_file_data(folder_path:str, channel_structures:dict):
     """
     
     # make lower string and path type
-    folder_path = folder_path = os.path.normpath(folder_path.lower())
+    folder_path = os.path.normpath(folder_path.lower())
     file_data = pd.DataFrame()
     cntr = 0
     
@@ -354,9 +354,6 @@ def create_index_array(file_data, user_data):
     obj = GetComments(file_data, user_data_use, 'comment_text', 'comment_time')
     index_df, com_warning = obj.add_comments_to_index(index_df)
     
-    # reset index and rename previous index to file_id
-    index_df = index_df.rename_axis('file_id').reset_index()
-    
     # check if user selected time exceeds bounds
     if (index_df['start_time']<0).any() or (index_df['start_time']>index_df['file_length']).any():
         raise Exception('Start time exceeds bounds.')
@@ -409,9 +406,9 @@ def get_index_array(folder_path, user_data):
     user_data = user_data.dropna(axis = 0)
 
     warning_str = ''
-    # ensure group names are unique
-    if len(user_data['Assigned Group Name']) != len(user_data['Assigned Group Name'].unique()):
-       warning_str += 'Duplicate -Assigned Group Names- were found. Please check that -Assigned Group Names- are unique'
+    # # ensure group names are unique
+    # if len(user_data['Assigned Group Name']) != len(user_data['Assigned Group Name'].unique()):
+    #    warning_str += 'Duplicate -Assigned Group Names- were found. Please check that -Assigned Group Names- are unique'
 
     # get channel order
     channel_structures = get_channel_structures(user_data)
