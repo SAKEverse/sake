@@ -67,7 +67,7 @@ def pac():
     QtTest.QTest.qWait(100)
     msg=subprocess.run(["python", os.path.join(script_dir,r"cli.py"), "coupling",
                         "--ws", int(ui.binEdit.text()),
-                        "--method", pac_funcs[ui.pacFuncBox.currentText()],
+                        "--function", pac_funcs[ui.pacFuncBox.currentText()],
                         ])
     if msg.returncode != 0:
         ui.errorBrowser.setText(_translate("mainWindow","ERROR: Could not perform PAC... \nCheck terminal for errors..."))
@@ -86,7 +86,7 @@ def coherence():
     print( os.path.join(script_dir,r"cli.py"))
     msg=subprocess.run(["python", os.path.join(script_dir,r"cli.py"), "coherence",
                         "--ws", ui.binEdit.text(),
-                        "--method", coher_funcs[ui.coherFuncBox.currentText()],
+                        "--function", coher_funcs[ui.coherFuncBox.currentText()],
                         ])
     if msg.returncode != 0:
         ui.errorBrowser.setText(_translate("mainWindow","ERROR: Could not perform Coherence Calc... \nCheck terminal for errors..."))
@@ -114,6 +114,7 @@ def plot_pac():
     
     msg=subprocess.run(["python", os.path.join(script_dir,r"cli.py"), "plot",
                         "--method", "pac",
+                        "--function", pac_funcs[ui.pacFuncBox.currentText()],
                         "--plottype", plot_types[ui.pacPlotBox.currentText()],
                         "--norm", get_norm_string(),
                         ])
@@ -126,6 +127,7 @@ ui.pacPlotButton.clicked.connect(lambda:plot_pac())
 def plot_coher():
     msg=subprocess.run(["python", os.path.join(script_dir,r"cli.py"), "plot",
                         "--method", "coherence",
+                        "--function", coher_funcs[ui.coherFuncBox.currentText()],
                         "--plottype", plot_types[ui.coherPlotBox.currentText()],
                         "--norm", get_norm_string(),
                         ])
