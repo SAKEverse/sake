@@ -208,7 +208,8 @@ class GetComments:
         
         # if comments do not exist return index_df without changing
         if self.category is None:
-            return index_df, com_warning
+            index_df.index = index_df.index.set_names(['file_id'])
+            return index_df.reset_index(), com_warning
            
         # create empty arrays
         com_logic = np.zeros( (len(self.file_data), len(self.com_text_cols)*len(self.user_data)))
