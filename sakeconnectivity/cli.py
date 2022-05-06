@@ -82,9 +82,9 @@ def check_path(ctx):
       
 @main.command()
 @click.option('--ws', type=str, help='Enter window size (s), e.g. 30')
-@click.option('--method', type=str, help='Enter method type: E.g. tort')
+@click.option('--function', type=str, help='Enter method type: E.g. tort')
 @click.pass_context
-def coupling(ctx, ws, method='tort'):
+def coupling(ctx, ws, function='tort'):
     """
     Calculate phase amplitude coupling
     """
@@ -106,16 +106,16 @@ def coupling(ctx, ws, method='tort'):
     data = phaseamp_batch(downsampled_df, ctx.obj['iter_freqs'], ctx.obj['new_fs'], int(ws))
 
     # store data
-    data.to_pickle(os.path.join(ctx.obj['search_path'], 'phase_amp.pickle'))
+    data.to_pickle(os.path.join(ctx.obj['search_path'], 'phase_amp_'+ function +'.pickle'))
     click.secho(f"\n -> Coupling completed and data were stored to {ctx.obj['search_path']}'.\n",
                 fg='green', bold=True)
 
     
 @main.command()
 @click.option('--ws', type=str, help='Enter window size (s), e.g. 5')
-@click.option('--method', type=str, help='Analysis type (s), e.g. coh plv')
+@click.option('--function', type=str, help='Analysis type (s), e.g. coh plv')
 @click.pass_context
-def coherence(ctx, ws, method='coh'):
+def coherence(ctx, ws, function='coh'):
     """
     Calculate coherence
     """
@@ -127,7 +127,7 @@ def coherence(ctx, ws, method='coh'):
         return
     
     methods = ['coh', 'plv', 'pli']
-    method = method.split(' ')
+    method = function.split(' ')
     if not set(method) <= set(methods):
         click.secho(f"\n -> Got '{method}' instead of  '{methods}", fg='yellow', bold=True)
         return
@@ -140,7 +140,7 @@ def coherence(ctx, ws, method='coh'):
     # calculate coherence
     from coherence import coherence_batch
     data = coherence_batch(downsampled_df, ctx.obj['iter_freqs'], ctx.obj['new_fs'], int(ws), method=method)
-    data.to_pickle(os.path.join(ctx.obj['search_path'], 'coherence.pickle'))
+    data.to_pickle(os.path.join(ctx.obj['search_path'], 'coherence_' + function + '.pickle'))
     click.secho(f"\n -> Coherence completed and data were stored to {ctx.obj['search_path']}'.\n",
                 fg='green', bold=True)
 
@@ -148,8 +148,9 @@ def coherence(ctx, ws, method='coh'):
 @click.option('--method', type=str, help='Analysis type (s), e.g. coherence')
 @click.option('--plottype', type=str, help='Analysis type (s), e.g. box')
 @click.option('--norm', type=str, help='Enter col-value pair (s), e.g. treatment-baseline1')
+@click.option('--function', type=str, help='Function type (s), e.g. coh')
 @click.pass_context
-def plot(ctx, method, plottype, norm):
+def plot(ctx, method, plottype, norm, function):
     """
     Interactive summary plot.
 
@@ -162,9 +163,9 @@ def plot(ctx, method, plottype, norm):
     from facet_plot_gui import GridGraph
     
     if method == 'pac':
-        file = 'phase_amp.pickle'
+        file = 'phase_amp_'+ function + '.pickle'
     elif method == 'coherence':
-        file = 'coherence.pickle'
+        file = 'coherence_' + function + '.pickle'
      
     # get data
     data = pd.read_pickle(os.path.join(ctx.obj['search_path'], file))
