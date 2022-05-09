@@ -184,7 +184,7 @@ def plot(ctx, method, plottype, norm, function):
             categories = list(set(plotdf.columns[:-1]) - set([base_condition['col']]))
             plotdf = normalize(plotdf, y, base_condition, categories)
         plotdf = plotdf.drop(columns='method', axis=1).set_index('animal')
-        graph = GridGraph(ctx.obj['search_path'], method+'.csv', plotdf, x=plottype)
+        graph = GridGraph(ctx.obj['search_path'], method + function +'.csv', plotdf, x=plottype)
         graph.draw_psd()
     else:
         group_cols = list(data.columns[data.columns.get_loc('time') +1 :-1]) + ['animal']
@@ -192,7 +192,7 @@ def plot(ctx, method, plottype, norm, function):
         if len(norm) == 2:
             categories = list(set(plotdf.columns[:-1]) - set([base_condition['col']]))
             plotdf = normalize(plotdf, y, base_condition, categories)
-        graph = GridGraph(ctx.obj['search_path'], method+'.csv', plotdf.set_index('animal'), x='band')
+        graph = GridGraph(ctx.obj['search_path'], method + function +'.csv', plotdf.set_index('animal'), x='band')
         graph.draw_graph(plottype)
 
     
