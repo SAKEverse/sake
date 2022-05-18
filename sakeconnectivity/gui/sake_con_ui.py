@@ -215,7 +215,7 @@ class Ui_mainWindow(object):
         self.pacPlotButton.setText(_translate("mainWindow", " Plot PAC"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("mainWindow", "Phase Amplitude Coupling"))
         self.coherCalcButton.setText(_translate("mainWindow", "Calculate Coherence"))
-        self.label_3.setText(_translate("mainWindow", "Cohenrence Function:"))
+        self.label_3.setText(_translate("mainWindow", "Coherence Function:"))
         self.label_6.setText(_translate("mainWindow", "Plot Type:"))
         self.coherPlotButton.setText(_translate("mainWindow", "Plot Coherence"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("mainWindow", "Coherence"))

@@ -66,7 +66,7 @@ def pac():
     
     QtTest.QTest.qWait(100)
     msg=subprocess.run(["python", os.path.join(script_dir,r"cli.py"), "coupling",
-                        "--ws", int(ui.binEdit.text()),
+                        "--ws", ui.binEdit.text(),
                         "--function", pac_funcs[ui.pacFuncBox.currentText()],
                         ])
     if msg.returncode != 0:

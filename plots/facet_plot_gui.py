@@ -235,7 +235,7 @@ class GridGraph:
             default[i]=param
         #graph the facet plot with the first 4 categories
         x,hue,col,row = default
-        self.g=sns.relplot(data = self.data, x = x, y = self.graph_value, hue = hue, col = col, row = row, height=2.5,aspect=6/4,kind='line',ci='se')
+        self.g=sns.relplot(data = self.data, x = x, y = self.graph_value, hue = hue, col = col, row = row, height=2.5,aspect=6/4,kind='line',ci=68)
         self.make_interactive()
 
     def draw_dist(self, params=None):

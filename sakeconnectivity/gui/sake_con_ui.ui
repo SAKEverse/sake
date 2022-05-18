@@ -206,7 +206,7 @@
            </sizepolicy>
           </property>
           <property name="text">
-           <string>Cohenrence Function:</string>
+           <string>Coherence Function:</string>
           </property>
          </widget>
         </item>
