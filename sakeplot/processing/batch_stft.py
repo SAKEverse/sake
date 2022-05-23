@@ -29,7 +29,7 @@ def rem_array(start, stop, div):
     """
 
     rem = stop % div
-    if rem == stop:
+    if (stop - start) < rem:
         idx_array = np.array([start,stop])
     else:
         trim_stop = (stop - rem)
