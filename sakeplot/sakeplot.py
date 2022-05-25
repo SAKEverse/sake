@@ -73,6 +73,15 @@ def plotPSD():
 
 ui.PSDButton.clicked.connect(lambda:plotPSD())
 
+def plotTimeSeries():
+    """Enter plot menu"""
+    window= ui.timeWindowEdit.text()
+    msg=subprocess.run(["python", os.path.join(script_dir,r"cli.py"), "plot", "--window", window, '--plot_type','power_time'])
+    if msg.returncode != 0:
+        ui.errorBrowser.setText(_translate("SAKEDSP","Check Terminal for Errors"))
+
+ui.timeSeriesButton.clicked.connect(lambda:plotTimeSeries())
+
 def plotPower():
     if ui.plotValue.currentText() == 'Area':
         msg=subprocess.run(["python", os.path.join(script_dir,r"cli.py"), "plot", '--plot_type','power_area','--kind',ui.plotType.currentText()])
