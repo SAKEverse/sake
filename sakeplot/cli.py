@@ -227,8 +227,9 @@ def verify(ctx, outlier_threshold):
 @click.option('--plot_type', type = str, help = 'Enter plot type, e.g. psd')
 @click.option('--freq', type = str, help = 'Enter frequency range, e.g. 1-30')
 @click.option('--kind', type = str, help = 'Enter graph kind, e.g. violin')
+@click.option('--window', type = str, help = 'Enter window for time-series rebinning, e.g. 30')
 @click.pass_context
-def plot(ctx, freq, plot_type, kind):
+def plot(ctx, freq, plot_type, kind, window=30):
     """Enter plot menu"""
     
     # update kind if present
@@ -238,11 +239,11 @@ def plot(ctx, freq, plot_type, kind):
     # check if power mat exists 
     if not os.path.isfile(ctx.obj['power_mat_verified_path']):
         click.secho(f"\n -> File '{ctx.obj['power_mat_verified_path']}' was not found in '{ctx.obj['search_path']}'" + 
-                    "Need to run 'stft' and 'verify' before plotting.\n", fg = 'yellow', bold = True)
+                    "Need to run 'stft' and 'verify' before plotting.\n", fg='yellow', bold=True)
         return
     
     # check if plot type is present in the correct format
-    plot_type_options = ['power_area', 'power_ratio', 'psd', 'dist']
+    plot_type_options = ['power_area', 'power_ratio', 'psd', 'dist', 'power_time']
     
     if plot_type is None:
         click.secho("\n -> 'Missing argument 'plot_type'. Please use the following format: --plot_type power_area.\n"
@@ -300,6 +301,18 @@ def plot(ctx, freq, plot_type, kind):
         GridGraph(ctx.obj['search_path'], 
                   ctx.obj['power_mat_verified_path'], 
                   data).draw_graph(ctx.obj['summary_plot_type'])
+        return
+    
+    if plot_type == 'power_time':
+        from plots.psd_analysis import melted_power_time
+        # get power ratio
+        data = melted_power_time(index_df, power_df, ctx.obj['freq_ranges'], 
+                                 categories, (ctx.obj['fft_win'], int(window)))
+        
+        # graph interactive summary plot
+        GridGraph(ctx.obj['search_path'], 
+                  ctx.obj['power_mat_verified_path'], 
+                  data, x='time', y='power_area').draw_psd(ctx.obj['summary_plot_type'])
         return
     
     # get frequency

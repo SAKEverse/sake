@@ -9,7 +9,7 @@ from processing.stft import get_freq_index
 ########## ---------------------------------------------------------------- ##########
 
 @beartype
-def get_power_area(pmat:np.ndarray, freq_vec:np.ndarray, freqs:np.ndarray) -> np.ndarray:
+def get_power_area(pmat:np.ndarray, freq_vec:np.ndarray, freqs:np.ndarray, average=True) -> np.ndarray:
     """
     Get power area across frequencies.
 
@@ -18,10 +18,11 @@ def get_power_area(pmat:np.ndarray, freq_vec:np.ndarray, freqs:np.ndarray) -> np
     pmat : np.ndarray, 2D array containing power values rows = frequency bins and cols = time bins
     freq_vec : np.ndarray, vector with real frequency values
     freqs : np.ndarray, 2D array with frequencies, rows = different frequency ranges, colums = [start, stop]
+    average : bool, if True gets the average across frequency and time
 
     Returns
     -------
-    powers : 1D np.array, len = frequency ranges 
+    powers : 1D np.array, len = frequency ranges
 
     """
     
@@ -29,12 +30,16 @@ def get_power_area(pmat:np.ndarray, freq_vec:np.ndarray, freqs:np.ndarray) -> np
     freqs = freqs.reshape([-1, 2]) # reshape to 2D
     freq_idx = get_freq_index(freq_vec, freqs)
     
-    # init empty array to store powers
-    powers = np.zeros(freq_idx.shape[0])
-    for i in range(freq_idx.shape[0]):
-        powers[i] = np.mean(pmat[freq_idx[i,0]:freq_idx[i,1],:])
+    axis = None
+    if not average:
+        axis = 0
     
-    return powers
+    # init empty array to store powers
+    powers = []
+    for i in range(freq_idx.shape[0]):
+        powers.append(np.mean(pmat[freq_idx[i,0]:freq_idx[i,1],:], axis=axis))
+    
+    return np.array(powers)
 
 @beartype
 def get_power_ratio(pmat:np.ndarray, freq_vec:np.ndarray, freqs:np.ndarray) -> np.ndarray:
@@ -64,7 +69,7 @@ def get_power_ratio(pmat:np.ndarray, freq_vec:np.ndarray, freqs:np.ndarray) -> n
                               np.mean(pmat[freq_idx[i,1,0]:freq_idx[i,1,1],:]))                           
     return powers
 
-
+@beartype
 def melted_power_area(index_df:PandasDf, power_df:PandasDf, freqs:list, selected_categories:list):
     """
     Get power area and melt dataframe for seaborn plotting.
@@ -109,6 +114,7 @@ def melted_power_area(index_df:PandasDf, power_df:PandasDf, freqs:list, selected
     
     return df
 
+@beartype
 def melted_power_ratio(index_df:PandasDf, power_df:PandasDf, freqs:list, selected_categories:list):
     """
     Get power ratio and melt dataframe for seaborn plotting.
@@ -152,6 +158,64 @@ def melted_power_ratio(index_df:PandasDf, power_df:PandasDf, freqs:list, selecte
                  ignore_index=False)
     
     return df
+
+# @beartype
+def melted_power_time(index_df:PandasDf, power_df:PandasDf, freqs:list, 
+                    selected_categories:list, win_rebin):
+    """
+    Get power area and melt dataframe for seaborn plotting.
+
+    Parameters
+    ----------
+    index_df : PandasDf, experiment index
+    power_df : PandasDf, contains pmat and frequency vectors for every row of index_df
+    freqs : list, 2D list with frequency ranges for extraction of power area
+    selected_categories : list, columns that will be included in the melted
+    rebin_factor : int, window size for rebinning
+    
+    Returns
+    -------
+    df : PandasDf, melted df with power area and categories
+
+    """
+    # convert to numpy array
+    freqs = np.array(freqs)
+    
+    # create frequency column names
+    freq_columns = []
+    for i in range(freqs.shape[0]):
+        freq_columns.append(str(freqs[i,0]) + ' - ' + str(freqs[i,1]) + ' Hz')
+    
+    # create array for storage
+    resample_factor = int(win_rebin[1]/win_rebin[0])
+    df_list = []
+    for i in range(len(index_df)): # iterate over dataframe
+        # get power across frequencies and time
+        power_array = get_power_area(power_df['pmat'][i], power_df['freq'][i], freqs, average=False)
+
+        # resample
+        rows, cols = power_array.shape
+        trim = cols - cols%resample_factor
+        new_cols = cols//resample_factor
+        power_array = np.mean(power_array[:,:trim].reshape((rows, new_cols, resample_factor)), axis=2)
+        t = np.tile(np.arange(0, power_array.shape[1])*win_rebin[1], power_array.shape[0])
+        
+        # create df and pass to list
+        df = pd.DataFrame({'power_area':power_array.flatten(), 
+                                     'freq':np.repeat(freq_columns, power_array.shape[1]),
+                                     'time': t})
+        df.insert(0, 'Index', i)
+        df_list.append(df)
+
+    # concatenate to array
+    df = pd.concat(df_list, ignore_index=True)
+    df = index_df.join(df.set_index('Index'))
+    
+    # set file id as index
+    df['id'] = df['animal_id'].astype(str) + df['file_id'].astype(str)
+    df.set_index('id', inplace=True)
+    
+    return df[selected_categories + ['freq', 'time', 'power_area']]
 
 
 def melted_psds(index_df:PandasDf, power_df:PandasDf, freq_range:list, selected_categories:list): ## don't drop file index
@@ -310,7 +374,6 @@ def norm_power(index_df, power_df, selection):
     power_df : PandasDf, with dropped indices where conditions are missing
     
     """
-
     unique_id = 'animal_id'
     category, group  = selection
 
