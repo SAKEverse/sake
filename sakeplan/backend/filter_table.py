@@ -5,6 +5,7 @@ from beartype import beartype
 import numpy as np
 import pandas as pd
 from backend.adi_parse import AdiParse
+from backend.file_check import check_file
 from backend import search_function
 from backend.get_all_comments import GetComments
 ### ------------------------------------------- ###
@@ -414,6 +415,7 @@ def get_index_array(folder_path, user_data):
     channel_structures = get_channel_structures(user_data)
     
     # get all file data in dataframe
+    check_file(folder_path, channel_structures)
     file_data = get_file_data(folder_path, channel_structures)
     
     # add animal id

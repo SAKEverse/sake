@@ -43,7 +43,6 @@ class AdiParse:
         
         # Get block
         adi_obj = self.read_labchart_file()           # read file
-        
         block_len = np.zeros(adi_obj.n_records)       # create empty array for storage
         for block in range(adi_obj.n_records):
             
