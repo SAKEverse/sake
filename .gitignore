@@ -130,3 +130,6 @@ dmypy.json
 sakeplan/sakeplantest.py
 *path.yaml
 *settings.yaml
+sakeconnectivity/pilot_example2.py
+sakeconnectivity/pilot_example.py
+sakeplot/pilot_example.py
