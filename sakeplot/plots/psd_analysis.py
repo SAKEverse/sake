@@ -187,7 +187,7 @@ def melted_power_time(index_df:PandasDf, power_df:PandasDf, freqs:list,
         freq_columns.append(str(freqs[i,0]) + ' - ' + str(freqs[i,1]) + ' Hz')
     
     # create array for storage
-    resample_factor = int(win_rebin[1]/win_rebin[0])
+    resample_factor = int(win_rebin[1]*2/win_rebin[0])
     df_list = []
     for i in range(len(index_df)): # iterate over dataframe
         # get power across frequencies and time
