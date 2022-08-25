@@ -186,8 +186,9 @@ def get_current_img():
         index=pd.read_csv(os.path.join(ctx.obj['search_path'],'index.csv'))
         ui.normCol.addItems(['transform']+list(index.columns)[list(index.columns).index('stop_time')+1:-1])
         norm_col_changed()
-    except:pass
-
+    except Exception as e:
+        raise e
+        
 # Execute if module runs as main program
 if __name__ == '__main__': 
 

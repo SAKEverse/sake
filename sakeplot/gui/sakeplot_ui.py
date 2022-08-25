@@ -245,7 +245,7 @@ class Ui_SAKEDSP(object):
         self.labelPlotType.setText(_translate("SAKEDSP", "Power Area Type:"))
         self.timeSeriesButton.setText(_translate("SAKEDSP", "Plot Time Series"))
         self.label_2.setText(_translate("SAKEDSP", "Window (sec)"))
-        self.timeWindowEdit.setText(_translate("SAKEDSP", "5"))
+        self.timeWindowEdit.setText(_translate("SAKEDSP", "60"))
         self.menuFile.setTitle(_translate("SAKEDSP", "File"))
         self.actionSettings.setText(_translate("SAKEDSP", "Settings"))
 
