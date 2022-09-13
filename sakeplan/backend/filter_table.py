@@ -279,10 +279,10 @@ def get_drop_logic(file_data, user_data, source:str):
     index : pd.DataFrame
 
     """
-    
+
     # get only user data form source
     user_data = user_data[user_data['Source'] == source].reset_index()
-    
+   
     index = {}
     for i in range(len(user_data)): # iterate over user data entries       
                 
@@ -311,7 +311,7 @@ def create_index_array(file_data, user_data):
     group_columns: list, column names that denote groups
     warning_str: str, string used for warning
     """
-    
+
     # create empty dataframes for storage
     logic_index_df = pd.DataFrame()
     index_df = pd.DataFrame()
@@ -325,7 +325,7 @@ def create_index_array(file_data, user_data):
     drop_idx = user_data['Assigned Group Name'] == 'drop'
     user_data_drop = user_data[drop_idx]
     user_data_use = user_data[~drop_idx]
-
+    
     for source in sources: # iterate over user data entries  
         
         # get index logic for each assigned group
@@ -351,6 +351,12 @@ def create_index_array(file_data, user_data):
     # convert logic to groups
     index_df = convert_logicdf_to_groups(index_df, logic_index_df, groups_ids)
     
+    # remove rows containing drop
+    region_drop = pd.DataFrame((index_df['brain_region'] == 'drop').rename('drop'))
+    drop_df = pd.concat((drop_df, region_drop), axis=1)
+    index_df = index_df[~drop_df.any(axis=1).values]
+    file_data = file_data [~drop_df.any(axis=1).values]
+    
     # get time and comments
     obj = GetComments(file_data, user_data_use, 'comment_text', 'comment_time')
     index_df, com_warning = obj.add_comments_to_index(index_df)
@@ -364,13 +370,13 @@ def create_index_array(file_data, user_data):
     # update group columns
     group_columns = list(index_df.columns[index_df.columns.get_loc('stop_time')+1:]) + ['brain_region']
     
-    # remove rows containing drop
-    region_drop = pd.DataFrame((index_df['brain_region'] == 'drop').rename('drop'))
-    if len(drop_df) != 0:
-        drop_df = pd.concat([drop_df]*int(len(region_drop)/len(drop_df))
-                            , axis=0).reset_index(drop=True)
-    drop_df =  pd.concat((drop_df, region_drop), axis=1)
-    index_df = index_df[~drop_df.any(axis=1).values]
+    # # remove rows containing drop
+    # region_drop = pd.DataFrame((index_df['brain_region'] == 'drop').rename('drop'))
+    # # if len(drop_df) != 0:
+    # #     drop_df = pd.concat([drop_df]*int(len(region_drop)/len(drop_df))
+    # #                         , axis=0).reset_index(drop=True)
+    # drop_df = pd.concat((drop_df, region_drop), axis=1)
+    # index_df = index_df[~drop_df.any(axis=1).values]
     
     # check if groups were not detected
     if index_df.isnull().values.any():
