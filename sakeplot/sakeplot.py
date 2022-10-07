@@ -187,7 +187,8 @@ def get_current_img():
         ui.normCol.addItems(['transform']+list(index.columns)[list(index.columns).index('stop_time')+1:-1])
         norm_col_changed()
     except Exception as e:
-        raise e
+        # raise e
+        pass
         
 # Execute if module runs as main program
 if __name__ == '__main__': 
