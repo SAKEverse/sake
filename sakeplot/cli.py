@@ -285,7 +285,8 @@ def plot(ctx, freq, plot_type, kind, window=30):
         from plots.psd_analysis import melted_power_area
         # get power area
         data = melted_power_area(index_df, power_df, ctx.obj['freq_ranges'], categories)
-        
+        data.to_csv(os.path.join(os.path.dirname(ctx.obj['index_path']),
+                                 "power_area_{}plot.csv".format(ctx.obj['summary_plot_type'])))
         # graph interactive summary plot
         GridGraph(ctx.obj['search_path'], 
                   ctx.obj['power_mat_verified_path'],
@@ -308,7 +309,8 @@ def plot(ctx, freq, plot_type, kind, window=30):
         # get power ratio
         data = melted_power_time(index_df, power_df, ctx.obj['freq_ranges'], 
                                  categories, (ctx.obj['fft_win'], int(window)))
-        
+        data.to_csv(os.path.join(os.path.dirname(ctx.obj['index_path']),
+                                 "power_time_series_{}s_window.csv".format(int(window))))
         # graph interactive summary plot
         GridGraph(ctx.obj['search_path'], 
                   ctx.obj['power_mat_verified_path'], 
@@ -333,7 +335,8 @@ def plot(ctx, freq, plot_type, kind, window=30):
         from plots.psd_analysis import melted_psds
         # get psd data
         psd_data = melted_psds(index_df, power_df, freq_range, categories)
-        
+        psd_data.to_csv(os.path.join(os.path.dirname(ctx.obj['index_path']),
+                                        "psd_data_{}-{}_hz.csv".format(freq_range[0],freq_range[1])))
         # Graph interactive PSD
         GridGraph(ctx.obj['search_path'],  ctx.obj['psd_mat'], psd_data).draw_psd()
         
