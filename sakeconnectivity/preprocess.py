@@ -98,8 +98,8 @@ def batch_downsample(main_path, idfile, new_fs=250):
         # get data and sampling rate
         fread = adi.read_file(os.path.join(main_path, row['folder_path'], row['file_name']))
         ch_obj = fread.channels[row['channel_id']]
-        ch_data = ch_obj.get_data(row['block']+1, start_sample=row['start_time'], 
-                                     stop_sample=row['stop_time'])
+        ch_data = ch_obj.get_data(row['block']+1, start_sample=int(row['start_time']), 
+                                     stop_sample=int(row['stop_time']))
         
         # downsample the data and pass to dataframe
         downsampled = downsample(ch_data, row['sampling_rate'], new_fs)
