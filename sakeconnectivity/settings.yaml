@@ -11,6 +11,9 @@ iter_freqs:
 - - gamma
   - 30
   - 80
+- - highgamma
+  - 80
+  - 120
 new_fs: 250
 sake_index: index_verified.csv
-search_path: //supercomputer2/Shared/acute_allo
+search_path: //supercomputer2/Shared/Pantelis/hippo_lfp/full_time

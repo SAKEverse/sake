@@ -198,7 +198,8 @@ class GridGraph:
         #graph the facet plot with the first 4 categories
         x,hue,col,row = default
         height=2.5
-        self.g=sns.catplot(data = self.data, x = x, y = self.graph_value, hue = hue, col = col, row = row, kind = self.kind,height=height,aspect=6/4,ci=68)
+        self.g=sns.catplot(data = self.data, x = x, y = self.graph_value, hue = hue, col = col, row = row, kind = self.kind,height=height,aspect=6/4,
+                           errorbar='se')
         self.make_interactive()
     
     def draw_psd(self, kind=False, params=None):
@@ -235,7 +236,8 @@ class GridGraph:
             default[i]=param
         #graph the facet plot with the first 4 categories
         x,hue,col,row = default
-        self.g=sns.relplot(data = self.data, x = x, y = self.graph_value, hue = hue, col = col, row = row, height=2.5,aspect=6/4,kind='line',ci=68)
+        self.g=sns.relplot(data = self.data, x = x, y = self.graph_value, hue = hue, col = col, row = row, height=2.5,aspect=6/4,kind='line',
+                           errorbar='se')
         self.make_interactive()
 
     def draw_dist(self, params=None):
@@ -275,7 +277,8 @@ class GridGraph:
             default[i]=param
         #graph the facet plot with the first 4 categories
         x,hue,col,row = default
-        self.g=sns.relplot(data = self.data, x = x, y = self.graph_value, hue = hue, col = col, row = row, height=2.5,aspect=6/4,kind='line',ci='se')
+        self.g=sns.relplot(data = self.data, x = x, y = self.graph_value, hue = hue, col = col, row = row, height=2.5,aspect=6/4,kind='line',
+                           errobar='se')
         for axis in self.g.axes.flatten():
             old_title=axis.get_title()
             #get parameters from graph axis
