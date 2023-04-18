@@ -54,9 +54,6 @@ class AdiParse:
         # Get total number of channels
         self.n_channels = adi_obj.n_channels
         
-        # Get file length
-        self.file_length = int(block_len[self.block])
-        
         # get channel order if total channel number matches
         channel_order = []
         if self.n_channels in channel_structures.keys():
@@ -172,9 +169,15 @@ class AdiParse:
         df : pd.DataFrame
 
         """
+
+        # read labchart file
+        adi_obj = self.read_labchart_file()
         
-        # add file length
-        df['file_length'] = int(self.file_length)
+        # get file length per channel and pass to df
+        ch_length = [adi_obj.channels[int(x)].n_samples[self.block] for x in df['channel_id']]
+        df['file_length'] = ch_length
+        
+        del adi_obj
         
         return df
     
