@@ -1,7 +1,7 @@
 ﻿Source,Search Function,Search Value,Assigned Group Name,Category,Time Selection (sec)
 channel_name,within,-,auto,animal_id,all
-total_channels,number,12,bla-pfc-drop,region,all
-total_channels,number,16,drop-bla-drop-pfc,region,all
+total_channels,number,12,bla-pfc-drop,brain_region,all
+total_channels,number,16,drop-bla-drop-pfc,brain_region,all
 channel_name,contains,m_,male,sex,all
 channel_name,contains,f_,female,sex,all
 file_name,contains,_wt,wildtype,genotype,all
