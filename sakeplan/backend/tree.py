@@ -7,6 +7,23 @@ import itertools
 ### --------------------------- ###
 
 def drawSankey(data):
+    """
+    This function generates a Plotly Sankey diagram from the provided data.
+
+    Parameters:
+    data (pd.DataFrame): The input data for the Sankey diagram. The dataframe should have categorical columns.
+
+    Returns:
+    plotly.graph_objs._figure.Figure: A Plotly figure object representing the Sankey diagram.
+
+    The function first calculates the frequencies of unique values in each column of the input dataframe. Then, it generates all possible combinations of these unique values across the columns. For each combination, it computes the number of rows in the data that match this combination exactly.
+
+    These frequencies are then used to define the links in the Sankey diagram, with the source nodes representing categories in one column, and the target nodes representing categories in the next column.
+
+    The nodes and links are colored based on the value; nodes with value greater than or equal to 1 are colored in 'rgb(250,250,250)', else they are colored in 'lightgrey'. The thickness of each link corresponds to the frequency of the corresponding combination of categories.
+
+    The function finally returns the Sankey diagram as a Plotly figure object.
+    """
     
     group_tree={col:{unique:len(data[col][data[col]==unique]) for unique in data[col].unique()} for col in data}
     uniques=[[unique for unique in data[col].unique()] for col in data]
