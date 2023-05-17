@@ -380,28 +380,7 @@ class AdiParse:
         # get index of channels that contain filter
         idx = df.index[df.channel_name.str.contains(filters, case=False)].to_list()
         return idx
-            
-    # create unique sets of attributes from channel names to autopopulate the user drop down menus        
-
-
-if __name__ == '__main__':
-    
-    file_path = r'C:\Users\panton01\Desktop\example_files\#1animal_sdsda_wt.adicht'#r'Z:\Pantelis\Combined Cohorts 1 & 2 (4 Channel)\PV-dlx-hm3d_d1(3)_1-4_comments.adicht'
-    channel_order = ['na', 'Bla', 'Hipp', 'Emg']
-    # initiate object      
-    adi_parse= AdiParse(file_path, channel_order)
-    
-    adi_obj = adi_parse.read_labchart_file()
-    
-    df =  adi_parse.get_all_file_properties()
-    
-
-    
-    # df, unique_groups = adi_parse.get_unique_conditions()
-
-    # df.to_csv('sankey_data.csv')
-    #
-    # idx = adi_parse.filter_names('fc')
+        
       
             
             
