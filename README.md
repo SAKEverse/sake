@@ -1,10 +1,12 @@
 # SAKE
 
-SAKE is a python toolbox for analysis EEG/LFP brain signals from [labchart](https://www.adinstruments.com/products/labchart) files.
 
-<p align="center">
-<img src="/sakeplan/assets/sakeico.png" alt="Banner" width="200" height="200">
+
+<p align="left">
+<img src="/sakeplan/assets/sakeico.png" alt="Banner" width="100" height="100">
 </p>
+
+SAKE is a python toolbox for analysis EEG/LFP brain signals from [labchart](https://www.adinstruments.com/products/labchart) files.
  
 ---
  
