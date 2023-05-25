@@ -170,6 +170,20 @@ def fast_outliers(arr:np.ndarray, window:int, threshold:float) -> np.ndarray:
 
 # remove 
 def get_outliers(arr:np.ndarray, window:int, threshold:float) -> np.ndarray:
+    '''
+    Find outliers from vector using a combination of methods and return a boolean array
+
+    Parameters
+    ----------
+    time_vector : np.ndarray
+    window : int
+    threshold : float
+
+    Returns
+    -------
+    outliers : np.ndarray
+    
+    '''
     
     # remove large outliers
     thresh = 4*np.std(arr) + np.mean(arr)
@@ -177,7 +191,8 @@ def get_outliers(arr:np.ndarray, window:int, threshold:float) -> np.ndarray:
     new_median = np.median(arr[arr<thresh])
     arr[outliers1] = new_median
     
-    outliers2 =  fast_outliers(arr, window, threshold)
+    # find local outliers
+    outliers2 = fast_outliers(arr, window, threshold)
     outliers = np.concatenate((outliers1.reshape(-1,1), outliers2.reshape(-1,1)), axis=1)
     return np.any(outliers, axis=1)
 

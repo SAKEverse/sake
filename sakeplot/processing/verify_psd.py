@@ -445,37 +445,6 @@ Increase/Decrease threshold = \u2191/\u2193 **\
             plt.close() # trigger close callback
 
 
-            
-# if __name__ == '__main__':
-#     import yaml,os
-#     import pandas as pd
-#     from load_index import load_index
-
-#     parent_folder = r'X:\Alyssa\EtOH_paper\acute_raw_data\etoh'
-
-#     # define frequencies of interest
-#     with open('settings.yaml', 'r') as file:
-#         settings = yaml.load(file, Loader=yaml.FullLoader)
-        
-#     settings.update({'outlier_threshold':5, 'outlier_window':11})
-    
-#     # get path to files
-#     settings.update({'index_path': os.path.join(parent_folder, settings['file_index'])})
-#     settings.update({'power_mat_path': os.path.join(parent_folder, settings['file_power_mat'])})
-#     settings.update({'index_verified_path': os.path.join(parent_folder, settings['file_index_verified'])})
-#     settings.update({'power_mat_verified_path': os.path.join(parent_folder, settings['file_power_mat_verified'])})
-    
-#     #### ---------------------------------------------------------------- ####
-    
-#     # load index and power dataframe
-#     index_df = load_index(os.path.join(parent_folder, settings['file_index']))
-#     power_df = pd.read_pickle(os.path.join(parent_folder, settings['file_power_mat']))
-       
-#     # pmat, outliers = remove_outliers(power_df['pmat'][0], 11, 5)
-#     callback = matplotGui(settings, index_df, power_df)
-
-
-
 
 
 
