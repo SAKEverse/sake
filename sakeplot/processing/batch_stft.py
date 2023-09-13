@@ -29,11 +29,11 @@ def rem_array(start, stop, div):
     """
 
     rem = stop % div
-    if (stop - start) < rem:
-        idx_array = np.array([start,stop])
+    if (stop - start) <= rem:
+        idx_array = np.array([start, stop])
     else:
         trim_stop = (stop - rem)
-        idx_array = np.arange(start, trim_stop, div, dtype = int)
+        idx_array = np.arange(start, trim_stop, div, dtype=int)
         idx_array = np.append(idx_array, stop)
     return idx_array
 
@@ -102,13 +102,13 @@ class BatchStft():
 
         """
         
-        power_df = pd.DataFrame(np.empty((len(self.index_df), 2)), columns = ['freq', 'pmat'], dtype = object)
+        power_df = pd.DataFrame(np.empty((len(self.index_df), 2)), columns=['freq', 'pmat'], dtype=object)
         
         print('\n--> Processing with', self.njobs, 'thread(s):\n')
 
         if self.njobs == 1:
             lst = []
-            for idx, row in self.index_df.iterrows():
+            for idx, row in tqdm(self.index_df.iterrows()):
                 lst.append(self.get_pmat(idx, row))
         else:
             with tqdm_joblib(tqdm(desc='Extracting Power', total=len(self.index_df))) as progress_bar:  # NOQA
@@ -154,7 +154,7 @@ class BatchStft():
         stft_obj = Stft(selected_properties)
         freq = stft_obj.f
         
-        # create index
+        # create index for array chunks to load in memory
         chunksize = self.chunksize//stft_obj.sampling_rate*stft_obj.sampling_rate
         temp_idx = rem_array(file_properties['start_time'], 
                    file_properties['stop_time'],
@@ -164,7 +164,7 @@ class BatchStft():
         idx[:, 1] = temp_idx[1:]
         idx[:, 0] -= stft_obj.fft_overlap_size
         idx[:-1, 1] -= 1
-        
+
         # get power for each segment
         pmat = np.zeros((freq.shape[0], 0))
         for ii in range(idx.shape[0]):
