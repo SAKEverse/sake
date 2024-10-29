@@ -8,7 +8,6 @@ import webbrowser
 from PyQt5 import QtCore, QtWidgets, QtTest 
 from gui.sake_con_ui import Ui_mainWindow
 from cli import load_yaml
-import os
 from PyQt5.QtGui import QMovie
 import pandas as pd
 ##### ------------------------------------------------------------------- #####
