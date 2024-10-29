@@ -63,28 +63,28 @@ def create_coh_waves(coh, length=30, fs=1000, freq=5, noise=.3,
     shifted = np.convolve(shifted, amp, mode='same') + noise_array
     return template[trim:-trim], shifted[trim:-trim]
 
-template, shifted = create_coh_waves(0.5, phase_shift=0 ,length=30, fs=1000, freq=10, noise=0.3)
-# plt.plot(template)
-# plt.plot(shifted)
-plt.plot(np.angle(signal.hilbert(template)) - np.angle(signal.hilbert(shifted)))
+# template, shifted = create_coh_waves(0.5, phase_shift=0 ,length=30, fs=1000, freq=10, noise=0.3)
+# # plt.plot(template)
+# # plt.plot(shifted)
+# plt.plot(np.angle(signal.hilbert(template)) - np.angle(signal.hilbert(shifted)))
 
-r = norm_zero_lag_xcorr(template, shifted)
-print(r)
-# coh=[]
-# coh_value=[]
-# for i in np.arange(0,1,0.05):
+# r = norm_zero_lag_xcorr(template, shifted)
+# print(r)
+# # coh=[]
+# # coh_value=[]
+# # for i in np.arange(0,1,0.05):
     
-#     template, shifted = create_coh_waves(i, phase_shift=0 ,length=30, fs=1000, freq=10, noise=.3)
-#     phase1 = np.angle(signal.hilbert(template))
-#     phase2 = np.std(signal.hilbert(shifted))
-#     coh_value.append(np.mean(phase2-phase1))
-#     coh.append(i)
-# plt.plot(coh,coh_value)
-# # plt.plot()
-# # samples=1000
-# # coherence=1
-# # dphase = np.ones(samples)+ (coherence*np.random.rand(samples))
-# # plt.plot( np.sin(dphase))
+# #     template, shifted = create_coh_waves(i, phase_shift=0 ,length=30, fs=1000, freq=10, noise=.3)
+# #     phase1 = np.angle(signal.hilbert(template))
+# #     phase2 = np.std(signal.hilbert(shifted))
+# #     coh_value.append(np.mean(phase2-phase1))
+# #     coh.append(i)
+# # plt.plot(coh,coh_value)
+# # # plt.plot()
+# # # samples=1000
+# # # coherence=1
+# # # dphase = np.ones(samples)+ (coherence*np.random.rand(samples))
+# # # plt.plot( np.sin(dphase))
 
 
 
