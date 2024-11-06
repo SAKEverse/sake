@@ -6,8 +6,6 @@ from scipy import signal
 from tqdm import tqdm
 from numba import njit
 from preprocess import BatchFilter
-from joblib import delayed, Parallel
-import multiprocessing
 ##### ------------------------------------------------------------------- #####
 
 # =============================================================================
@@ -354,25 +352,6 @@ def coherence_batch(downsampled_df, iter_freqs, fs, binsize, method='coh'):
     data = pd.concat([data, s], axis=1)
         # pli phase_diff place last in df
     return  data.reset_index(drop=True)
-        
-        
-
-if __name__ =='__main__':
-    
-    from preprocess import batch_downsample
-    
-    path = r'C:\Users\panton01\Desktop\test_coherence'
-    new_fs = 250
-    iter_freqs = [('lowtheta', 3, 6),('hightheta', 6, 12),\
-                  ('beta', 13, 30),('gamma', 30, 80)]
-
-    downsampled_df = batch_downsample(path, 'index_verified.csv', new_fs=new_fs)
-    
-    #specify 'standard' frequency/bands
-
-    coh_df = coherence_batch(downsampled_df, 
-                              iter_freqs, new_fs, 30, method= ['plv']) # ['coh', 'plv', 'pli']
-    
 
 
 
