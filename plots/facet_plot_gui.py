@@ -8,11 +8,10 @@ import seaborn as sns
 from matplotlib import pyplot as plt
 import PyQt5
 from tidy_to_pzfx import tidy_to_grouped
-# mpl.use('TkAgg')
 ########## ---------------------------------------------------------------- ##########
 
 class GridGraph:
-    def __init__(self ,path, filename, data, x='freq',y=None):
+    def __init__(self, path, filename, data, x='freq', y=None):
         """
         Creates an object that stores tidy data from .csv that can create a dynamic facet plot.
         First column must be individual index.
@@ -39,10 +38,12 @@ class GridGraph:
         #pass inputs to object
         self.path=path
         self.filename=filename
-        self.data = data
-        #get the categories from the columns 
+        self.data=data
         
+        #get the categories from the columns (exclude brain region) 
         self.param_list=list(self.data.columns)
+        self.param_list.remove('brain_region')
+        
         # Y defaults to the last column is the value to graph
         if y in self.data.columns:
             self.graph_value = y
@@ -54,13 +55,8 @@ class GridGraph:
             self.x=x
         else:
             raise Exception('"{}" not found in data!'.format(x))
-            
-            
-        
-
         PyQt5.QtCore.qInstallMessageHandler(self.handler)#supress the error message
         
-
     def on_pick(self, event):
         """
         Callback for clicking on graphs. Export data if title is clicked,
@@ -153,10 +149,15 @@ class GridGraph:
             plt.figtext(spacing[i],.01,cats[i]+text,fontsize=10,picker=5,color='blue',fontweight='bold')
         #add helpful notes to figure
         plt.figtext(.01,.01,"Click to change:")
-        if len(self.param_list)>2:
-            plt.figtext(.35,.97,"Click a graph title to export",fontsize=12,fontweight='bold')
+        if len(self.param_list)>4:
+            plt.figtext(.15,.95,"Click a graph title to export (Warning: some categories collapsed!)",fontsize=12,fontweight='bold')
+        elif len(self.param_list)>2:
+            plt.figtext(.35,.95,"Click a graph title to export ",fontsize=12,fontweight='bold')
         else:
-            plt.figtext(.4,.97,"Click to export",fontsize=12,fontweight='bold',picker=5)
+            plt.figtext(.4,.95,"Click to export",fontsize=12,fontweight='bold',picker=5)
+        
+        self.g.fig.set_size_inches(8, 6)
+        
         #add the click callback to the figure
         self.g.fig.canvas.callbacks.connect('pick_event', self.on_pick)
         for ax in self.g.axes.flatten():
@@ -198,10 +199,12 @@ class GridGraph:
         #graph the facet plot with the first 4 categories
         x,hue,col,row = default
         height=2.5
-        self.g=sns.catplot(data = self.data, x = x, y = self.graph_value, hue = hue, col = col, row = row, kind = self.kind,height=height,aspect=6/4,
+        for brain_region, df in self.data.groupby('brain_region'):
+            self.g=sns.catplot(data = df, x = x, y = self.graph_value, hue = hue, col = col, row = row, kind = self.kind,height=height,aspect=6/4,
                            errorbar='se')
-        self.make_interactive()
-    
+            self.g.fig.canvas.manager.set_window_title(f'Brain region: {brain_region}')
+            self.make_interactive()
+
     def draw_psd(self, kind=False, params=None):
         """
         
@@ -236,9 +239,11 @@ class GridGraph:
             default[i]=param
         #graph the facet plot with the first 4 categories
         x,hue,col,row = default
-        self.g=sns.relplot(data = self.data, x = x, y = self.graph_value, hue = hue, col = col, row = row, height=2.5,aspect=6/4,kind='line',
-                           errorbar='se')
-        self.make_interactive()
+        for brain_region, df in self.data.groupby('brain_region'):
+            self.g=sns.relplot(data = df, x = x, y = self.graph_value, hue = hue, col = col, row = row, height=2.5,aspect=6/4,kind='line',
+                               errorbar='se')
+            self.g.fig.canvas.manager.set_window_title(f'Brain region: {brain_region}')
+            self.make_interactive()
 
     def draw_dist(self, params=None):
         """
@@ -277,44 +282,41 @@ class GridGraph:
             default[i]=param
         #graph the facet plot with the first 4 categories
         x,hue,col,row = default
-        self.g=sns.relplot(data = self.data, x = x, y = self.graph_value, hue = hue, col = col, row = row, height=2.5,aspect=6/4,kind='line',
-                           errobar='se')
-        for axis in self.g.axes.flatten():
-            old_title=axis.get_title()
-            #get parameters from graph axis
-            
-            if ' | ' in old_title: 
-                graph_dict={thing.split(" = ")[0]:thing.split(" = ")[1] for thing in old_title.split(" | ")}
-                (key1,val1),(key2,val2)=graph_dict.items()
-                temp=self.data[(self.data[key1]==val1) & (self.data[key2]==val2)]
-            elif ' = ' in old_title:
-                key1,val1=old_title.split(" = ")
-                temp=self.data[(self.data[key1]==val1)]
-            else:
-                temp=self.data
+        for brain_region, df in self.data.groupby('brain_region'):
+            self.g=sns.relplot(data = df, x = x, y = self.graph_value, hue = hue, col = col, row = row, height=2.5,aspect=6/4,kind='line',
+                               errorbar='se')
+            for axis in self.g.axes.flatten():
+                old_title=axis.get_title()
+                #get parameters from graph axis
                 
-            for line_name,line in zip(temp[hue].unique(),axis.lines):
-
-                #get the threshold
-                thresh=temp[temp[hue]==line_name]['threshold'].mean()
-                thresh_loc=np.where((line.properties()['xdata']>thresh))[0][0]
-                
-                #Fill the areas under the curve to the left and right of the threshold
-                hatch=''
-                # if graph_dict['Genotype']=='Cre+':hatch='///'
-                axis.fill_between(x=line.properties()['xdata'][thresh_loc:],
-                                    y1=line.properties()['ydata'][thresh_loc:],
-                                    y2=0,
-                                    facecolor=line.properties()['color'],
-                                    alpha=.3,
-                                    hatch=hatch)
-                
-                # #find number of data points in the raw data below threshold and display on graph
-                # this_data=temp[(temp[key1]==val1) & (temp[key2]==val2) & (temp['Metric']==test)]
-                # total=len(temp[(temp[key1]==val1) & (temp[key2]==val2) & (temp['Metric']==test)]['Value'])
-                # vuln=sum(temp[(temp[key1]==val1) & (temp[key2]==val2) & (temp['Metric']==test)]['Value'] < line.properties()['xdata'][thresh_loc])
-                # axis.text(x=line.properties()['xdata'][thresh_loc],y=0,s="{:.0%}".format(vuln/total),ha='right',fontweight='bold',fontsize=24)
-        self.make_interactive()
+                if ' | ' in old_title: 
+                    graph_dict={thing.split(" = ")[0]:thing.split(" = ")[1] for thing in old_title.split(" | ")}
+                    (key1,val1),(key2,val2)=graph_dict.items()
+                    temp=self.data[(self.data[key1]==val1) & (self.data[key2]==val2)]
+                elif ' = ' in old_title:
+                    key1,val1=old_title.split(" = ")
+                    temp=self.data[(self.data[key1]==val1)]
+                else:
+                    temp=self.data
+                    
+                for line_name,line in zip(temp[hue].unique(),axis.lines):
+    
+                    #get the threshold
+                    thresh=temp[temp[hue]==line_name]['threshold'].mean()
+                    thresh_loc=np.where((line.properties()['xdata']>thresh))[0][0]
+                    
+                    #Fill the areas under the curve to the left and right of the threshold
+                    hatch=''
+                    # if graph_dict['Genotype']=='Cre+':hatch='///'
+                    axis.fill_between(x=line.properties()['xdata'][thresh_loc:],
+                                        y1=line.properties()['ydata'][thresh_loc:],
+                                        y2=0,
+                                        facecolor=line.properties()['color'],
+                                        alpha=.3,
+                                        hatch=hatch)
+                    
+            self.g.fig.canvas.manager.set_window_title(f'Brain region: {brain_region}')
+            self.make_interactive()
     
 
     def handler(msg_type, msg_log_context, msg_string, fourth_one):
