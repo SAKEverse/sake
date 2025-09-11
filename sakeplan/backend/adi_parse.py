@@ -11,6 +11,7 @@ from beartype import beartype
 import numpy as np
 import pandas as pd
 import adi
+from typing import Optional, Dict
 ### ------------------------------------###
 
 class AdiParse:
@@ -19,7 +20,7 @@ class AdiParse:
     """   
     
     @beartype
-    def __init__(self, file_path:str, channel_structures:dict = {}):
+    def __init__(self, file_path:str, channel_structures:dict={}, block_index: Optional[int] = None):
         """
         Retrieve file properties and pass to self.properties
 
@@ -27,6 +28,7 @@ class AdiParse:
         ----------
         file_path : str
         channel_structures : dict, keys =  total channels, values = channel list
+        block_index : int, optional. The default is None.
 
         Returns
         -------
@@ -34,22 +36,23 @@ class AdiParse:
 
         """
 
-        
         # pass to object properties
         self.file_path = file_path
-        
-        # get file name
         self.file_name = os.path.basename(self.file_path)
         
-        # Get block
+        # Get block index and lengths
         adi_obj = self.read_labchart_file()           # read file
         block_len = np.zeros(adi_obj.n_records)       # create empty array for storage
         for block in range(adi_obj.n_records):
-            
-            # get block length
-           block_len[block] = adi_obj.channels[0].n_samples[block]
+           block_len[block] = adi_obj.channels[0].n_samples[block] # get block length
        
-        self.block = np.argmax(block_len)           # find the block with larger length
+        self.max_block = adi_obj.n_records - 1      # get max block number
+        self.block_lengths = block_len              # get all block lengths
+        if block_index is not None:
+            self.set_block(block_index)               # set block if provided
+        else:
+            self.block = np.argmax(block_len)           # find the block with larger length
+        
          
         # Get total number of channels
         self.n_channels = adi_obj.n_channels
@@ -69,7 +72,6 @@ class AdiParse:
             
         del adi_obj                                   # clear memory
     
-    
     def read_labchart_file(self):
         """
         Creates read object for labchart file and passes to self
@@ -77,12 +79,18 @@ class AdiParse:
         Returns
         -------
         adi_obj : Labchart read object
-
         """
         
         # return labchart read object
         return adi.read_file(self.file_path)
     
+    def set_block(self, block_index: int):
+        """Validate & set current block."""
+        if block_index is None:
+            return
+        if not (0 <= int(block_index) <= self.max_block):
+            raise ValueError(f"Block {block_index} out of range 0..{self.max_block}")
+        self.block = int(block_index)
     
     def get_channel_names(self):
         """
@@ -91,27 +99,19 @@ class AdiParse:
         Returns
         -------
         df : pd.DataFrame
-
         """
         
-        # read labchart file
+        # read labchart file and create dataframe
         adi_obj = self.read_labchart_file()
-
-        # define dataframe columns
-        cols = {'channel_id', 'channel_name'}
-
-        # create empty dataframe
-        df = pd.DataFrame(data = np.zeros((self.n_channels, len(cols))), columns = cols, dtype = 'object')
+        cols = ['channel_id', 'channel_name']
+        df = pd.DataFrame(data=np.zeros((self.n_channels, len(cols))), columns=cols, dtype='object')
         
         # iterate over channels and get names
         for ch in range(self.n_channels):
-            
-            # append channel info to dictionary
             df.at[ch, 'channel_id'] = str(ch)
             df.at[ch, 'channel_name'] = adi_obj.channels[ch].name
 
-        del adi_obj # clear memory
-
+        del adi_obj
         return df
     
     def add_file_name(self, df):
@@ -195,15 +195,13 @@ class AdiParse:
 
         """
         
-        # read labchart file
+        # read labchart file and retrieve comments
         adi_obj = self.read_labchart_file()
-        
+        comments = adi_obj.records[self.block].comments
+
         # add comments for each channel
         properties = {'text' : 'comment_text_', 'tick_position' : 'comment_time_'}
-        
-        # retrieve all comments
-        comments = adi_obj.records[0].comments;
-        
+
         # get channel order
         ch_idx = np.array([com.channel_ for com in comments])
 
@@ -213,19 +211,14 @@ class AdiParse:
             # index array
             idx_array = np.array([getattr(com, key)for com in comments])
             
-            temp_coms = [] # creaty empty list
+            # create temporary list and store comments per channel
+            temp_coms = [] 
             for ch in range(self.n_channels): # iterate over channels
-                
-                # get attribute that belongs in a channel
                 temp_coms.append(idx_array[ (ch_idx == ch) | (ch_idx == -1) ]) #-1 means all channels
             
-            # convert list to dataframe
+            # convert list to dataframe and add columns to df
             df_comments = pd.DataFrame(temp_coms)
-            
-            # add columns to dataframe
             for i in range(df_comments.shape[1]): # iterate over max number of comments
-                
-                # pass to dataframe
                 df[val + str(i)] = df_comments.iloc[:,i]
                 
         del adi_obj # clear memory
@@ -273,8 +266,9 @@ class AdiParse:
         # get sampling rate
         for i in range(len(df)):
             df.at[i,'sampling_rate'] = int(1/adi_obj.channels[i].tick_dt[self.block])
-            
+        del adi_obj
         return df
+
             
     
     def get_all_file_properties(self):
@@ -288,30 +282,69 @@ class AdiParse:
 
         """       
         
-        # add channel names
+        # add properties to dataframe
         df = self.get_channel_names()
-        
-        # add file names
         df = self.add_file_name(df)
-        
-        # add comments
         df = self.add_comments(df)
-        
-        # add brain region
         df = self.add_brain_region(df)
-        
-        # add file length
         df = self.add_file_length(df)
-        
-        # add file length
         df = self.add_block(df)
-        
-        # add sampling rate
         df = self.add_sampling_rate(df)
          
         return df
-            
+    
+    def get_block_coms(self) -> dict:
+        """
+        Build a single record for the “Block Selector Panel” DATA CONTRACT.
+
+        Returns
+        -------
+        dict
+            {
+                "file_name": str,                     # e.g., "rat01_day1.adicht"
+                "blocks_s": list[float],              # block lengths in seconds (one per block)
+                "selected": int,                      # 0-based index of the selected/longest block
+                "comments_by_block": dict[int, list[float]]
+                    # For each block index b, a list of comment times (in seconds)
+                    # RELATIVE to the start of block b.
+                    # We include comments that are either global (channel_ == -1)
+                    # or attached to the first channel (channel_ == 0), matching
+                    # the prior behavior. Adjust the filter below if you want to
+                    # aggregate across different channels.
+            }
+
+        Notes
+        -----
+        - All durations are returned in **seconds**.
+        - Block lengths are derived from per-block sample counts and the file’s
+        sampling rate.
+        - Comment times are clipped to the duration of their respective block.
+        """
+        # Open file once
+        adi_obj = self.read_labchart_file()
+
+        # get blokc times in seconds
+        fs =  int(1/adi_obj.channels[0].tick_dt[0]) # samples/sec (Hz)
+        blocks_s = [float(np.round(n_samples / fs, 3)) for n_samples in self.block_lengths]
+       
+        # Iterate through each block/record
+        comments_by_block: dict[int, list[float]] = {}
+        for b in range(adi_obj.n_records):
+            com_list = adi_obj.records[b].comments
+            com_times = [x.time for x in com_list]
+            comments_by_block[b] = com_times
         
+        # create record
+        record = {
+            "file_name": self.file_name,
+            "blocks_s": blocks_s,
+            "selected": int(self.block),
+            "comments_by_block": comments_by_block,
+        }
+
+        del adi_obj  # free resources
+        return record
+
     
     def get_unique_conditions(self):
         """

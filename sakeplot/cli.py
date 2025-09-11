@@ -287,10 +287,11 @@ def plot(ctx, freq, plot_type, kind, window=30):
         data = melted_power_area(index_df, power_df, ctx.obj['freq_ranges'], categories)
         data.to_csv(os.path.join(os.path.dirname(ctx.obj['index_path']),
                                  "power_area_{}plot.csv".format(ctx.obj['summary_plot_type'])))
+        
         # graph interactive summary plot
-        GridGraph(ctx.obj['search_path'], 
-                  ctx.obj['power_mat_verified_path'],
-                  data).draw_graph(ctx.obj['summary_plot_type'])
+        gg = GridGraph(ctx.obj['search_path'], ctx.obj['power_mat_verified_path'], data)
+        gg.draw_graph(ctx.obj['summary_plot_type'])
+
         return
     
     if plot_type == 'power_ratio':
@@ -355,13 +356,3 @@ if __name__ == '__main__':
     
     # start
     main(obj={})
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
