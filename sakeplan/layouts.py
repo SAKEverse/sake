@@ -44,8 +44,8 @@ main_layout =  html.Div(id = 'layout_channel', children=[
     # generate example channel name on top of table
     html.Div(id='channel_name'),
 
-    html.Div(id = 'drop_message', children=[ "*** To drop channels rename 'Assigned Group Name' to 'drop'"]
-    ),
+    # drop message
+    html.Div(id='drop_message', children=[ "*** To drop channels rename 'Assigned Group Name' to 'drop'"]),
     
     # 2 create user table
     html.Div(id='user_table_div', children=[
@@ -74,12 +74,12 @@ main_layout =  html.Div(id = 'layout_channel', children=[
         html.Button('+', id='add_row_button', n_clicks=0,   
         ),]),
 
-    # 4- tree plot
-    html.Div(id='tree_plot_div', children=[]),
-
     # 3- block selection plot
     html.Div(id="blocksel_panel_div", children=[]),
     html.Button(id="blocksel_accept", style={"display": "none"}),
     html.Button(id="blocksel_cancel", style={"display": "none"}),
+
+    # 4- tree plot
+    html.Div(id='tree_plot_div', children=[]),
 
 ])###

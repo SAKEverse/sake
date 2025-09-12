@@ -307,11 +307,18 @@ def make_block_selector_panel(
     return html.Div(
         [
             html.Div(
+                id="selector_message",
+                children=[
+                    html.B("Select the desired block for each recording. "
+                           "Scroll down to accept your selection and generate index file.")
+                ],
+                style={"marginBottom": "8px"},
+            ),
+            html.Div(
                 rows + [controls],
                 id=f"{panel_id}_rows",
                 style={"maxHeight": max_height, "overflowY": "auto", "paddingRight": "6px"},
             ),
-            
         ],
         id=f"{panel_id}_panel",
         style={"width": "100%"},
