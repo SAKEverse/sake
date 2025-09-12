@@ -307,11 +307,11 @@ def make_block_selector_panel(
     return html.Div(
         [
             html.Div(
-                rows,
+                rows + [controls],
                 id=f"{panel_id}_rows",
                 style={"maxHeight": max_height, "overflowY": "auto", "paddingRight": "6px"},
             ),
-            controls,
+            
         ],
         id=f"{panel_id}_panel",
         style={"width": "100%"},
