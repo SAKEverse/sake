@@ -1,5 +1,4 @@
-# SAKE
-
+# SAKE (Spectral Analysis Kit for EEG processing)
 
 
 <p align="left">

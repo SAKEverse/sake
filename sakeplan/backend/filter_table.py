@@ -1,4 +1,3 @@
-
 ### ----------------- IMPORTS ----------------- ###
 import os
 from beartype import beartype
@@ -8,63 +7,60 @@ from backend.adi_parse import AdiParse
 from backend.file_check import check_file
 from backend import search_function
 from backend.get_all_comments import GetComments
+from typing import Optional, Dict
 ### ------------------------------------------- ###
 
 @beartype
-def get_file_data(folder_path:str, channel_structures:dict):
+def get_file_data(folder_path: str, channel_structures: dict, selected_blocks: Optional[Dict[str, int]] = None) -> pd.DataFrame:
     """
-    Get file data in dataframe
+    Get file data as a dataframe. If `selected_blocks` is provided, use that block
+    per file instead of the default block from AdiParse.
 
     Parameters
     ----------
     folder_path : str
-    channel_structures : dict, keys =  total channels, values = channel list
+    channel_structures : dict   # {total_channels: [region1, region2, ...]}
+    selected_blocks : dict | None
+        Optional mapping {file_name: block_index} (file_name = basename like 'file1.adicht').
 
     Returns
     -------
     file_data : pd.DataFrame
-
     """
-    
-    # make lower string and path type
+    # normalize inputs
     folder_path = os.path.normpath(folder_path.lower())
-    file_data = pd.DataFrame()
-    cntr = 0
-    
-    # walk through all folders
+
+    # make sure selected_blocks is in correct format
+    selected_blocks = { (k or "").lower(): int(v) for k, v in (selected_blocks or {}).items()}
+
+    # iterate over files and collect data
+    frames = []
     for root, dirs, files in os.walk(folder_path):
-        
-        # get labchart file list
-        filelist = list(filter(lambda k: '.adicht' in k, files))
-
-        for file in filelist: # iterate over list
-        
-            # initiate adi parse object      
-            adi_parse = AdiParse(os.path.join(root, file), channel_structures)
+        filelist = [f for f in files if f.endswith('.adicht')]
+        for file in filelist:
             
-            # get all file data in dataframe
-            temp_file_data = adi_parse.get_all_file_properties()
-            
-            # add folder path
-            temp_file_data['folder_path'] = os.path.normcase(root)
+            # get info from labchart file
+            fpath = os.path.join(root, file)
+            sb = selected_blocks.get(file.lower(), None)
+            adi_parse = AdiParse(fpath, channel_structures, block_index=sb)
+            temp = adi_parse.get_all_file_properties()
 
-            # apppend to dataframe
-            file_data = file_data.append(temp_file_data, ignore_index = True)
+            # add folder path column
+            temp['folder_path'] = os.path.normcase(root)
+            frames.append(temp)
 
-            cntr+=1
-                
-    # convert data frame to lower case
+    # concat + normalize
+    file_data = pd.concat(frames).reset_index(drop=True)
     file_data = file_data.apply(lambda x: x.astype(str).str.lower())
-        
-    # convert file length to int
+
+    # ensure types
     file_data['file_length'] = file_data['file_length'].astype(np.int64)
-    
+
     # make paths relative
     file_data.folder_path = file_data.folder_path.str.replace(folder_path, '', regex=False)
     file_data.folder_path = file_data.folder_path.map(lambda x: x.lstrip('\\'))
-    
-    return file_data
 
+    return file_data
 
 def get_channel_structures(user_data):
     """
@@ -77,10 +73,8 @@ def get_channel_structures(user_data):
     Returns
     -------
     order : List with channels in order
-
     """
     
-
     # define separator
     separtor = '-'
     
@@ -117,7 +111,7 @@ def add_animal_id(file_data, user_data):
     
     # get data containing channel order
     drop_idx = user_data['Search Function'] == 'within'
-    animal_id = user_data[drop_idx].reset_index().drop(['index'], axis = 1)
+    animal_id = user_data[drop_idx].reset_index().drop(['index'], axis=1)
     
     # check if present
     if len(animal_id) > 1:
@@ -138,7 +132,7 @@ def add_animal_id(file_data, user_data):
         if sep in name:
             file_data.at[i, ids['Category']] = sep + name.split(sep)[1] + sep
 
-    return file_data, user_data.drop(np.where(drop_idx)[0], axis = 0)
+    return file_data, user_data.drop(np.where(drop_idx)[0], axis=0)
 
 
 def get_categories(user_data):
@@ -255,7 +249,7 @@ def get_source_logic(file_data, user_data, source:str):
     
     index = {}
     for i in range(len(user_data)): # iterate over user data entries       
-                
+
         # find index for specified source and match string
         idx = getattr(search_function, user_data.at[i, 'Search Function'])(file_data[source], user_data.at[i, 'Search Value'])                  
         
@@ -379,59 +373,109 @@ def create_index_array(file_data, user_data):
     return index_df, group_columns, warning_str + com_warning
 
 
-def get_index_array(folder_path, user_data):
+def get_index_array(folder_path, user_data, file_data=None):
     """
-    Get file data, channel array and create index
-    for experiments according to user selection
+    Get index array for experiments according to user selection
 
     Parameters
     ----------
-    file_data : pd.DataFrame, aggregated data from labchart files
-    user_data : 2D list, user search and grouping parameters from datatable
+    folder_path : str
+        Path to folder containing labchart files
+    user_data : pd.DataFrame
+        With user search and grouping parameters
+    file_data : pd.DataFrame or None, optional
+        If provided, this dataframe is used instead of calling get_file_data().
+        Must already have block selection applied.
 
     Returns
     -------
-    index_df: pd.DataFrame, with index
-    group_columns: list, column names that denote groups
-    warning_str: str, string used for warning
-
+    index_df : pd.DataFrame
+        Index dataframe
+    group_columns : list
+        Column names that denote groups
+    warning_str : str
+        String used for warning
     """
-    
-    # get dataframe and convert to lower case
+
+    # normalize user_data
     user_data = pd.DataFrame(user_data)
     user_data = user_data.apply(lambda x: x.astype(str).str.lower())
-  
-    # remove rows with missing inputs
-    user_data = user_data.dropna(axis = 0)
+    user_data = user_data.dropna(axis=0)
 
+    # initialize warning string
     warning_str = ''
-    # # ensure group names are unique
-    # if len(user_data['Assigned Group Name']) != len(user_data['Assigned Group Name'].unique()):
-    #    warning_str += 'Duplicate -Assigned Group Names- were found. Please check that -Assigned Group Names- are unique'
 
     # get channel order
     channel_structures = get_channel_structures(user_data)
-    
-    # get all file data in dataframe
-    check_file(folder_path, channel_structures)
-    file_data = get_file_data(folder_path, channel_structures)
-    
+
+    # get or use file_data
+    if file_data is None:
+        check_file(folder_path, channel_structures)
+        file_data = get_file_data(folder_path, channel_structures)
+
     # add animal id
     file_data, user_data = add_animal_id(file_data, user_data)
-    
-    # get index dataframe 
+
+    # get index dataframe
     index_df, group_columns, warning_add = create_index_array(file_data, user_data)
     warning_str += warning_add
-    
-    # check if no conditions were found
+
+    # sanity check
     if len(list(index_df.columns[index_df.columns.get_loc('stop_time')+1:])) < 2:
         warning_str += 'Warning: Only Brain region column was found!!'
-        
-    # check if multiple blocks are found
-    if np.sum(index_df.block.astype(int)) > 0:
-        warning_str += 'Warning: Some files contain more tha one block!!'
-           
+
     return index_df, group_columns, warning_str
+
+def get_index_df(folder_path, user_data, selection):
+    """
+    Get index dataframe for experiments according to user selection.
+
+    Parameters
+    ----------
+    folder_path : str
+        Path to folder containing labchart files
+    user_data : list of dicts
+        User data from SAKE input table
+    selection : dict
+        Mapping {file_name: block_index} (file_name = basename like 'file1.adicht').
+
+    Returns
+    -------
+    index_df : pd.DataFrame
+        Index dataframe
+    group_columns : list
+        Column names that denote groups
+    warning_str : str
+        String used for warning
+    """
+
+    # Normalize user table
+    user_df = pd.DataFrame(user_data)
+    user_df = user_df.apply(lambda x: x.astype(str).str.lower())
+    user_df = user_df[user_df['Source'] != '']
+
+    # Build channel structures
+    channel_structures = get_channel_structures(user_df)
+
+    # Map selected blocks → keys must be basenames + lower (backend expects that)
+    # blocksel_store looks like {"file1.adicht": 0, "file2.adicht": 2, ...}
+    selected_blocks = {}
+    if selection:
+        for k, v in selection.items():
+            if k:
+                selected_blocks[os.path.basename(k).lower()] = int(v)
+
+    # Rebuild file_data with the chosen blocks
+    file_data = get_file_data(folder_path, channel_structures, selected_blocks=selected_blocks)
+
+    # Compute index_df using the selected blocks
+    try:
+        index_df, group_names, warning_str = get_index_array(folder_path, user_df, file_data=file_data)
+    except TypeError:
+        raise Exception("Could not create index array based on selected blocks.")
+
+    return index_df, group_names, warning_str
+
 
 if __name__ == '__main__':
     
@@ -455,21 +499,20 @@ if __name__ == '__main__':
 
     # get experiment index
     index_df, group_columns, warning_str = create_index_array(file_data, user_data)
-    
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

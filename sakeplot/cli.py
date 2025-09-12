@@ -4,16 +4,23 @@ import sys
 import yaml
 import click
 import pandas as pd
-settings_yaml = 'settings.yaml'
-load_path_yaml = 'path.yaml'
+######## ---------------------------------------------------------- ########
 
-# add plot path
+# add parent 'plots' folder to path
 parent_path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
 path = os.path.join(parent_path, 'plots')
 if path not in sys.path:
     sys.path.append(path)
     
+######## ------------------------- Settings ----------------------- ########    
 ######## ---------------------------------------------------------- ########
+settings_yaml = 'settings.yaml'
+load_path_yaml = 'path.yaml'
+
+# if settings yaml does not exist create from settings.py   
+if not os.path.isfile(settings_yaml):
+    from save_settings import save_settings_to_yaml
+    save_settings_to_yaml(path=settings_yaml) 
 
 def load_yaml(settings_path):
     with open(settings_path, 'r') as file:
@@ -287,10 +294,11 @@ def plot(ctx, freq, plot_type, kind, window=30):
         data = melted_power_area(index_df, power_df, ctx.obj['freq_ranges'], categories)
         data.to_csv(os.path.join(os.path.dirname(ctx.obj['index_path']),
                                  "power_area_{}plot.csv".format(ctx.obj['summary_plot_type'])))
+        
         # graph interactive summary plot
-        GridGraph(ctx.obj['search_path'], 
-                  ctx.obj['power_mat_verified_path'],
-                  data).draw_graph(ctx.obj['summary_plot_type'])
+        gg = GridGraph(ctx.obj['search_path'], ctx.obj['power_mat_verified_path'], data)
+        gg.draw_graph(ctx.obj['summary_plot_type'])
+
         return
     
     if plot_type == 'power_ratio':
@@ -355,13 +363,3 @@ if __name__ == '__main__':
     
     # start
     main(obj={})
-
-    
-    
-    
-    
-    
-    
-    
-    
-    

@@ -4,7 +4,7 @@ from dash import dcc, html, dash_table
 ### --------------------------------------- ###
 
 # Always present
-layout1 =  html.Div(id = 'layout_channel', children=[
+main_layout =  html.Div(id = 'layout_channel', children=[
 
         
     html.Div([ # MAIN BANNER
@@ -13,21 +13,18 @@ layout1 =  html.Div(id = 'layout_channel', children=[
         
     ], className='main_banner'),
 
-    # store session data (hidden)
-    dcc.Store(id='user_df', storage_type = 'session'),
-
     # 0- alerts
-    html.Div(id = 'alert_div', children =[ # show warnings
+    html.Div(id='alert_div', children =[ # show warnings
         
     ]),
 
     # 1- generate button + folder path field + upload settings
     html.Div(id='generate_plus_field_div', children=[
 
-        html.Div(id = 'export_div', children=[ # invisible (used for export)
+        html.Div(id='export_div', children=[ # invisible (used for export)
             dcc.Download(id='download_index_csv') ]),
 
-        html.Div(id = 'export_user_data_div', children=[ # invisible (used for export)
+        html.Div(id='export_user_data_div', children=[ # invisible (used for export)
             dcc.Download(id='download_user_data_csv') ]),
 
         html.Div( id='generate_div', children=[
@@ -38,16 +35,18 @@ layout1 =  html.Div(id = 'layout_channel', children=[
             dcc.Input(id='data_path_input', type='text', placeholder='Path to data folder'),
         ]),
 
-        html.Div( id='load_user_data_div', children=[
+        html.Div(id='load_user_data_div', children=[
             dcc.Upload( id='upload_data', accept = '.csv', children = (html.Button('load_settings', id='load_settings', n_clicks=0))),
         ]),
 
     ]),
 
-    # generate example channel name
-    html.Div(id = 'channel_name',
-    ),
+    # generate example channel name on top of table
+    html.Div(id='channel_name'),
 
+    html.Div(id = 'drop_message', children=[ "*** To drop channels rename 'Assigned Group Name' to 'drop'"]
+    ),
+    
     # 2 create user table
     html.Div(id='user_table_div', children=[
 
@@ -71,17 +70,16 @@ layout1 =  html.Div(id = 'layout_channel', children=[
     ]),
 
     # 2- add row button
-     html.Div( id='add_row_button_div', children=[
-            html.Button('+', id='add_row_button', n_clicks=0,   
-            ),]),
+    html.Div( id='add_row_button_div', children=[
+        html.Button('+', id='add_row_button', n_clicks=0,   
+        ),]),
 
-    html.Div(id = 'drop_message', children =[ "Drop Channel keyword = 'drop'"]
-    ),
+    # 4- tree plot
+    html.Div(id='tree_plot_div', children=[]),
 
-    # tree group diagram
-     html.Div(id='tree_plot_div', children=[
-     ]),
+    # 3- block selection plot
+    html.Div(id="blocksel_panel_div", children=[]),
+    html.Button(id="blocksel_accept", style={"display": "none"}),
+    html.Button(id="blocksel_cancel", style={"display": "none"}),
 
-])
-
-
+])###
