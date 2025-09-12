@@ -4,16 +4,23 @@ import sys
 import yaml
 import click
 import pandas as pd
-settings_yaml = 'settings.yaml'
-load_path_yaml = 'path.yaml'
+######## ---------------------------------------------------------- ########
 
-# add plot path
+# add parent 'plots' folder to path
 parent_path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
 path = os.path.join(parent_path, 'plots')
 if path not in sys.path:
     sys.path.append(path)
     
+######## ------------------------- Settings ----------------------- ########    
 ######## ---------------------------------------------------------- ########
+settings_yaml = 'settings.yaml'
+load_path_yaml = 'path.yaml'
+
+# if settings yaml does not exist create from settings.py   
+if not os.path.isfile(settings_yaml):
+    from save_settings import save_settings_to_yaml
+    save_settings_to_yaml(path=settings_yaml) 
 
 def load_yaml(settings_path):
     with open(settings_path, 'r') as file:
