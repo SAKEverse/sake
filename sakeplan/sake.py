@@ -7,6 +7,8 @@ import dash
 from dash import dcc, html, no_update
 from dash.dependencies import Input, Output, State, MATCH, ALL
 import dash_bootstrap_components as dbc
+import time  # NEW: for a simple accept token
+from time import time as _now
 
 # ---- SAKE modules ----
 from layouts import main_layout
@@ -34,10 +36,7 @@ app = dash.Dash(
 app.server.secret_key = os.urandom(24)
 
 # ---------------- Layout ------------------
-# We keep main_layout (previous UI), then add:
-#   - blocksel_records: holds the records (list[dict]) for the selector
-#   - blocksel_store:   holds {file_name: selected_block}
-#   - refresh_token:    dummy store to trigger clientside page refresh on Cancel
+# Added: blocksel_cycle store (stable signal for "Accept happened")
 app.layout = html.Div(
     [
         html.Div(children=main_layout),
@@ -45,6 +44,19 @@ app.layout = html.Div(
         dcc.Store(id="blocksel_store"),
         dcc.Store(id="refresh_token"),
         dcc.Store(id="user_df", storage_type="session"),
+        dcc.Store(id="blocksel_cycle"),   # NEW
+    ]
+)
+
+# (Optional) validation layout
+app.validation_layout = html.Div(
+    [
+        html.Div(children=main_layout),
+        dcc.Store(id="blocksel_records"),
+        dcc.Store(id="blocksel_store"),
+        dcc.Store(id="refresh_token"),
+        dcc.Store(id="user_df", storage_type="session"),
+        dcc.Store(id="blocksel_cycle"),
     ]
 )
 
@@ -54,7 +66,6 @@ app.layout = html.Div(
     [Input("user_table", "data")],
 )
 def update_user_data(table_data):
-    # get channel strings
     df = pd.DataFrame(table_data)
     channels = df[df["Source"] == "channel_name"]
     categories = list(channels["Category"].unique())
@@ -64,12 +75,9 @@ def update_user_data(table_data):
     for category in categories:
         search_value = channels[channels["Category"] == category]["Search Value"]
         out_string += str(search_value.iloc[0])
-
-    # add brain region
     if "region" in df["Category"].values:
         regions = df[df["Category"] == "region"]["Assigned Group Name"]
         out_string += regions.iloc[0].split("-")[0]
-
     return df.to_json(date_format="iso", orient="split"), out_string
 
 ### ---------- Update User Table --------- ###
@@ -83,41 +91,46 @@ def update_user_data(table_data):
     [Input("add_row_button", "n_clicks"), Input("upload_data", "contents")],
     [State("user_df", "data")],
 )
-
 def update_usertable(n_clicks, upload_contents, session_user_data):
     ctx = dash.callback_context
-
-    # load user input from csv file selected by user
     if ctx.triggered and ctx.triggered[0]["prop_id"] == "upload_data.contents":
         df = user_data_mod.upload_csv(upload_contents)
     else:
-        if session_user_data is None:  # if new user session
-            df = user_data_mod.original_user_data  # get default dataframe
-        else:  # load user input from current session
-            df = pd.read_json(session_user_data, orient="split")  # get data from user datatable
-
-    # convert user data in dashtable format
+        if session_user_data is None:
+            df = user_data_mod.original_user_data
+        else:
+            df = pd.read_json(session_user_data, orient="split")
     dash_cols, df, drop_dict = dashtable(df[user_data_mod.original_user_data.columns])
-
-    if (n_clicks or 0) > 0:  # Add rows when button is clicked
+    if (n_clicks or 0) > 0:
         df = add_row(df)
-
     return dash_cols, df.to_dict("records"), True, drop_dict
 
 
+@app.callback(
+    Output("blocksel_cycle", "data"),
+    Input("blocksel_accept", "n_clicks"),
+    prevent_initial_call=True,
+)
+def _accept_to_store(n):
+    if not n:
+        return no_update
+    return _now()  # a changing token each Accept
+
+
 ### ---------- BLOCK SELECTOR: Build panel on Generate ---------- ###
+# NOTE: we now listen to blocksel_cycle (stable store), not the disappearing button id
 @app.callback(
     [Output("blocksel_panel_div", "children"), Output("blocksel_records", "data")],
-    [Input("generate_button", "n_clicks"), Input("blocksel_accept", "n_clicks")],
+    [Input("generate_button", "n_clicks"), Input("blocksel_cycle", "data")],
     [State("data_path_input", "value"), State("user_table", "data")],
 )
-def show_block_selector(n_clicks_generate, n_clicks_accept, folder_path, user_table_data):
+def show_block_selector(n_clicks_generate, accept_token, folder_path, user_table_data):
     ctx = dash.callback_context
     trig = ctx.triggered[0]["prop_id"] if ctx.triggered else ""
 
-    # If ACCEPT was clicked, clear the panel (records persist in store manager)
-    if trig == "blocksel_accept.n_clicks":
-        return None, no_update
+    # ACCEPT signal via store: clear BOTH panel and records (so next Generate re-inits)
+    if trig == "blocksel_cycle.data":
+        return None, None
 
     # GENERATE path
     if not n_clicks_generate:
@@ -141,15 +154,23 @@ def show_block_selector(n_clicks_generate, n_clicks_accept, folder_path, user_ta
 
 
 ### ---------- BLOCK SELECTOR: Manage selection store ---------- ###
-# Single owner for blocksel_store: initialize when records load; update on row clicks
+# Single owner: init on records, update on clicks, CLEAR on Accept (via store)
 @app.callback(
     Output("blocksel_store", "data"),
-    [Input("blocksel_records", "data"), Input({"type": "blocksel_graph", "file": ALL}, "clickData")],
+    [
+        Input("blocksel_records", "data"),
+        Input({"type": "blocksel_graph", "file": ALL}, "clickData"),
+        Input("blocksel_cycle", "data"),  # CHANGED: clear on Accept signal
+    ],
     [State("blocksel_store", "data"), State({"type": "blocksel_graph", "file": ALL}, "id")],
 )
-def manage_blocksel_store(records, all_clicks, current_store, all_ids):
+def manage_blocksel_store(records, all_clicks, accept_token, current_store, all_ids):
     ctx = dash.callback_context
     trig = ctx.triggered[0]["prop_id"] if ctx.triggered else ""
+
+    # Clear selection on Accept signal
+    if trig == "blocksel_cycle.data":
+        return None
 
     # Initialize when records arrive
     if trig == "blocksel_records.data":
@@ -160,7 +181,6 @@ def manage_blocksel_store(records, all_clicks, current_store, all_ids):
     # Update on any row click
     if trig.endswith(".clickData"):
         try:
-            # Identify which graph fired; id is JSON in prop_id
             fired_json = trig.split(".")[0]
             fired_id = json.loads(fired_json)
             fname = fired_id.get("file")
@@ -197,29 +217,23 @@ def manage_blocksel_store(records, all_clicks, current_store, all_ids):
     [State("blocksel_records", "data"), State({"type": "blocksel_graph", "file": MATCH}, "id")],
 )
 def update_block_row_figure(click_data, records, this_id):
-    # no click / no state -> no change
     if not click_data or not records or not this_id:
         return [no_update]
-
     file_name = this_id.get("file")
-
-    # get clicked block index from customdata
     point = click_data["points"][0]
     custom = point.get("customdata") or {}
     clicked_block = int(custom.get("block", point.get("curveNumber", 0)))
-
-    # fetch the record for this file and rebuild only this row
     by_file = {r["file_name"]: r for r in (records or [])}
     rec = by_file.get(file_name)
     if rec is None:
         return [no_update]
-
     fig = build_block_row_figure(rec, selected_override=clicked_block)
     return [fig]
 
 
 ### ---------- INDEX CREATION: Accept selection & build Sankey ---------- ###
 # Accept → rebuild file_data using selected blocks, then produce Sankey & exports
+# PLUS: emit an accept token into blocksel_cycle (so other callbacks can react safely)
 @app.callback(
     [
         Output("alert_div", "children"),
@@ -227,43 +241,49 @@ def update_block_row_figure(click_data, records, this_id):
         Output("download_index_csv", "data"),
         Output("download_user_data_csv", "data"),
     ],
-    [Input("blocksel_accept", "n_clicks")],
-    [State("data_path_input", "value"), State("user_table", "data"), State("blocksel_store", "data")],
+    [
+        Input("blocksel_cycle", "data"),          # Accept signal (stable)
+        Input("generate_button", "n_clicks"),     # Clear on Generate
+    ],
+    [
+        State("data_path_input", "value"),
+        State("user_table", "data"),
+        State("blocksel_store", "data"),
+    ],
 )
-def accept_and_build(n_clicks, folder_path, user_data, selection):
-    if not n_clicks:
-        # no-op until Accept is clicked
+def accept_build_or_clear(accept_token, n_generate, folder_path, user_data, selection):
+    ctx = dash.callback_context
+    if not ctx.triggered:
         return no_update, no_update, no_update, no_update
 
+    trig = ctx.triggered[0]["prop_id"]
+
+    # Generate clicked: clear Sankey only
+    if trig == "generate_button.n_clicks":
+        return no_update, None, no_update, no_update
+
+    # Accept signal: build Sankey & exports
     try:
-        # Guard: need a path and user table
         if not folder_path or not user_data:
-            warn = dbc.Alert("Please provide a valid data path and user table.", color="warning", dismissable=True)
+            warn = dbc.Alert("Please provide a valid data path and user table.",
+                             color="warning", dismissable=True)
             return warn, None, None, None
 
-        # Build index_df with selected blocks
         index_df, group_names, warning_str = get_index_df(folder_path, user_data, selection)
-
-        # Sankey plot
         fig = dcc.Graph(id="tree_structure", figure=drawSankey(index_df[group_names]))
 
-        # Exports
         data = dcc.send_data_frame(index_df.to_csv, "index.csv", index=False)
-        user_data_df = pd.DataFrame(user_data)
-        user_data_df = user_data_df[user_data_mod.original_user_data.columns]
+        user_data_df = pd.DataFrame(user_data)[user_data_mod.original_user_data.columns]
         user_data_export = dcc.send_data_frame(user_data_df.to_csv, "user_data.csv", index=False)
 
-        # Warning banner (if any)
-        warning = (
-            None
-            if not (warning_str or "").strip()
-            else dbc.Alert(id="alert_message", children=[str(warning_str)], color="warning", dismissable=True)
+        warning = None if not (warning_str or "").strip() else dbc.Alert(
+            id="alert_message", children=[str(warning_str)], color="warning", dismissable=True
         )
-
         return warning, fig, data, user_data_export
 
     except Exception as err:
-        warning = dbc.Alert(id="alert_message", children=["   " + str(err)], color="warning", dismissable=True)
+        warning = dbc.Alert(id="alert_message", children=["   " + str(err)],
+                            color="warning", dismissable=True)
         return warning, None, None, None
 
 
@@ -273,7 +293,6 @@ app.clientside_callback(
     function(n) {
         if (n) {
             window.location.reload();
-            // return something so Dash is happy
             return Date.now();
         }
         return window.dash_clientside.no_update;
@@ -283,16 +302,13 @@ app.clientside_callback(
     Input("blocksel_cancel", "n_clicks"),
 )
 
-
 ### ----------------- Run server ----------------- ###
-# Automatic browser launch
 import webbrowser
 from threading import Timer
-
 def open_browser():
     webbrowser.open("http://localhost:8050/", new=2)
 
 if __name__ == "__main__":
     Timer(1, open_browser).start()
-    app.run_server(debug=False, port=8050, host="localhost")
+    app.run_server(debug=True, port=8050, host="localhost")
 ### ----------------- End of File ----------------- ###
