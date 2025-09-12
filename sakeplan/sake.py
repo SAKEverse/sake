@@ -7,7 +7,6 @@ import dash
 from dash import dcc, html, no_update
 from dash.dependencies import Input, Output, State, MATCH, ALL
 import dash_bootstrap_components as dbc
-import time  # NEW: for a simple accept token
 from time import time as _now
 
 # ---- SAKE modules ----
@@ -36,7 +35,6 @@ app = dash.Dash(
 app.server.secret_key = os.urandom(24)
 
 # ---------------- Layout ------------------
-# Added: blocksel_cycle store (stable signal for "Accept happened")
 app.layout = html.Div(
     [
         html.Div(children=main_layout),
@@ -44,7 +42,7 @@ app.layout = html.Div(
         dcc.Store(id="blocksel_store"),
         dcc.Store(id="refresh_token"),
         dcc.Store(id="user_df", storage_type="session"),
-        dcc.Store(id="blocksel_cycle"),   # NEW
+        dcc.Store(id="blocksel_cycle"),
     ]
 )
 
@@ -105,7 +103,8 @@ def update_usertable(n_clicks, upload_contents, session_user_data):
         df = add_row(df)
     return dash_cols, df.to_dict("records"), True, drop_dict
 
-
+# ---------- BLOCK SELECTOR: Accept button to store ---------- ###
+# This store is used to emit a stable "Accept" signal that other callbacks can listen to
 @app.callback(
     Output("blocksel_cycle", "data"),
     Input("blocksel_accept", "n_clicks"),
@@ -114,8 +113,7 @@ def update_usertable(n_clicks, upload_contents, session_user_data):
 def _accept_to_store(n):
     if not n:
         return no_update
-    return _now()  # a changing token each Accept
-
+    return _now()
 
 ### ---------- BLOCK SELECTOR: Build panel on Generate ---------- ###
 # NOTE: we now listen to blocksel_cycle (stable store), not the disappearing button id
@@ -305,10 +303,11 @@ app.clientside_callback(
 ### ----------------- Run server ----------------- ###
 import webbrowser
 from threading import Timer
+
 def open_browser():
     webbrowser.open("http://localhost:8050/", new=2)
 
 if __name__ == "__main__":
     Timer(1, open_browser).start()
-    app.run_server(debug=True, port=8050, host="localhost")
+    app.run_server(debug=False, port=8050, host="localhost")
 ### ----------------- End of File ----------------- ###
