@@ -105,7 +105,9 @@ class GridGraph:
         else:
                 export_index=np.ones(self.data.shape[0])==1
         
-        
+
+        selected_region = self.g.fig.canvas.manager.get_window_title().split(": ")[1]
+        export_index &= self.data['brain_region'] == selected_region
         all_data=pd.DataFrame()
         # loop through the variables in the second category
         for cond in self.data[pivot_params[1]].unique():
@@ -123,7 +125,7 @@ class GridGraph:
             all_data=pd.concat([all_data,cond_df],axis=1)
         
         
-        save_name=self.filename.split(".")[0]+"_"+var1+"_"+var2 +"_"+str(self.data[self.x].unique()[0])+'_through_'+str(self.data[self.x].unique()[-1])
+        save_name=var1+"_"+var2 +"_"+str(self.data[self.x].unique()[0])+'_through_'+str(self.data[self.x].unique()[-1]) + f"_{selected_region}"
         # export to csv 
         save_path = os.path.join(self.path, save_name+".csv")
         all_data.to_csv(save_path)
