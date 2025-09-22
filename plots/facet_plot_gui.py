@@ -106,36 +106,37 @@ class GridGraph:
                 export_index=np.ones(self.data.shape[0])==1
         
 
-        selected_region = self.g.fig.canvas.manager.get_window_title().split(": ")[1]
-        export_index &= self.data['brain_region'] == selected_region
-        all_data=pd.DataFrame()
-        # loop through the variables in the second category
-        for cond in self.data[pivot_params[1]].unique():
-            # make new table with the filter index
-            filtered=self.data[export_index & (self.data[pivot_params[1]]==cond)]
+        # selected_region = self.g.fig.canvas.manager.get_window_title().split(": ")[1]
+        for selected_region in self.data['brain_region'].unique():
+            reg_export_index = export_index & (self.data['brain_region'] == selected_region)
+            all_data=pd.DataFrame()
+            # loop through the variables in the second category
+            for cond in self.data[pivot_params[1]].unique():
+                # make new table with the filter index
+                filtered=self.data[reg_export_index & (self.data[pivot_params[1]]==cond)]
+                
+                # melt the table by the first category, creating a separate table for each var in the second category
+                cond_df=filtered.pivot(columns=self.pivot_params[0],values=self.graph_value)
+                cond_df=cond_df[self.data[self.x].unique()]
+                cond_df = cond_df.transpose()
+    
+                cond_df.columns = [cond+str(col) for col in cond_df.columns]
+                
+                # add to a concatenated df
+                all_data=pd.concat([all_data,cond_df],axis=1)
             
-            # melt the table by the first category, creating a separate table for each var in the second category
-            cond_df=filtered.pivot(columns=self.pivot_params[0],values=self.graph_value)
-            cond_df=cond_df[self.data[self.x].unique()]
-            cond_df = cond_df.transpose()
-
-            cond_df.columns = [cond+str(col) for col in cond_df.columns]
             
-            # add to a concatenated df
-            all_data=pd.concat([all_data,cond_df],axis=1)
-        
-        
-        save_name=var1+"_"+var2 +"_"+str(self.data[self.x].unique()[0])+'_through_'+str(self.data[self.x].unique()[-1]) + f"_{selected_region}"
-        # export to csv 
-        save_path = os.path.join(self.path, save_name+".csv")
-        all_data.to_csv(save_path)
-        print("-> Exported to:" + str(self.path) + "\n")
-        
-        #export to prism file
-        out=tidy_to_grouped(self.data[export_index],self.x,self.graph_value,pivot_params[1])
-        text_file = open(os.path.join(self.path,save_name+".pzfx"), "w")
-        text_file.write(out)
-        text_file.close()
+            save_name=var1+"_"+var2 +"_"+str(self.data[self.x].unique()[0])+'_through_'+str(self.data[self.x].unique()[-1]) + f"_{selected_region}"
+            # export to csv 
+            save_path = os.path.join(self.path, save_name+".csv")
+            all_data.to_csv(save_path)
+            print("-> Exported to:" + str(self.path) + "\n")
+            
+            #export to prism file
+            out=tidy_to_grouped(self.data[reg_export_index],self.x,self.graph_value,pivot_params[1])
+            text_file = open(os.path.join(self.path,save_name+".pzfx"), "w")
+            text_file.write(out)
+            text_file.close()
         
 
     def make_interactive(self):
