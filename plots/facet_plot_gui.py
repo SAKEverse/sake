@@ -74,6 +74,7 @@ class GridGraph:
         pivot_params=self.param_list.copy()
         var1=''
         var2=''
+        breakpoint()
         # if clicked on a graphing parameter
         if ":" in event.artist.get_text():
             if 'X:' in event.artist.get_text(): return
@@ -83,8 +84,9 @@ class GridGraph:
             exec(self.type)
             return
         # if clicked on a graph title
+
         elif '|' in event.artist.get_text():
-            
+
                 # parse the string for categories and variables
                 str1,str2=event.artist.axes.get_title().split(r" | ")
                 cat1,var1=str1.split(" = ")
@@ -116,6 +118,7 @@ class GridGraph:
                 filtered=self.data[reg_export_index & (self.data[pivot_params[1]]==cond)]
                 
                 # melt the table by the first category, creating a separate table for each var in the second category
+                filtered = filtered.groupby(['id']+self.pivot_params).mean().reset_index()
                 cond_df=filtered.pivot(columns=self.pivot_params[0],values=self.graph_value)
                 cond_df=cond_df[self.data[self.x].unique()]
                 cond_df = cond_df.transpose()
