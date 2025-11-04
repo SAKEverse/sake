@@ -119,6 +119,8 @@ class GridGraph:
                 # melt the table by the first category, creating a separate table for each var in the second category
                 filtered = filtered.groupby(['id']+self.pivot_params).mean().reset_index().set_index('id')
                 cond_df=filtered.pivot(columns=self.pivot_params[0],values=self.graph_value)
+                if len(cond_df) <1:
+                    continue
                 cond_df=cond_df[self.data[self.x].unique()]
                 cond_df = cond_df.transpose()
     
@@ -127,15 +129,20 @@ class GridGraph:
                 # add to a concatenated df
                 all_data=pd.concat([all_data,cond_df],axis=1)
             
-            
             save_name=var1+"_"+var2 +"_"+str(self.data[self.x].unique()[0])+'_through_'+str(self.data[self.x].unique()[-1]) + f"_{selected_region}"
             # export to csv 
             save_path = os.path.join(self.path, save_name+".csv")
             all_data.to_csv(save_path)
             print("-> Exported to:" + str(self.path) + "\n")
-            
+
             #export to prism file
-            out=tidy_to_grouped(self.data[reg_export_index],self.x,self.graph_value,pivot_params[1])
+            groupby_idx = ['id']
+            for col in self.data.columns:
+                if col != self.graph_value:
+                    groupby_idx.append(col)
+            prism_data = self.data[reg_export_index]
+            prism_data = prism_data.groupby(groupby_idx).mean().reset_index().set_index('id')
+            out=tidy_to_grouped(prism_data,self.x,self.graph_value,pivot_params[1])
             text_file = open(os.path.join(self.path,save_name+".pzfx"), "w")
             text_file.write(out)
             text_file.close()
