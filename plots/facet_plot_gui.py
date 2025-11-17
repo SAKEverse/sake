@@ -80,7 +80,10 @@ class GridGraph:
             switched=event.artist.get_text().split(":")[1][1:]
             self.param_list.remove(switched)# put the clicked on at the end
             self.param_list.append(switched)
-            exec(self.type)
+            #get the region
+            region = str(self.g.fig.canvas.manager.get_window_title()).split(": ")[-1]
+            func = self.type.split(')')[0] +"region='"+ region + "')"
+            exec(func)
             return
         # if clicked on a graph title
 
@@ -140,8 +143,10 @@ class GridGraph:
             for col in self.data.columns:
                 if col != self.graph_value:
                     groupby_idx.append(col)
+            
             prism_data = self.data[reg_export_index]
             prism_data = prism_data.groupby(groupby_idx).mean().reset_index().set_index('id')
+           
             out=tidy_to_grouped(prism_data,self.x,self.graph_value,pivot_params[1])
             text_file = open(os.path.join(self.path,save_name+".pzfx"), "w")
             text_file.write(out)
@@ -176,7 +181,7 @@ class GridGraph:
             ax.set_xticklabels(ax.get_xticklabels(), rotation=20)
         plt.show()
     
-    def draw_graph(self, kind=None, params=None):
+    def draw_graph(self, kind=None, params=None,region=None):
         """
         
 
@@ -211,13 +216,17 @@ class GridGraph:
         #graph the facet plot with the first 4 categories
         x,hue,col,row = default
         height=2.5
-        for brain_region, df in self.data.groupby('brain_region'):
+        if region == None:
+            data = self.data
+        else:
+            data = self.data[self.data['brain_region'] == region]
+        for brain_region, df in data.groupby('brain_region'):
             self.g=sns.catplot(data = df, x = x, y = self.graph_value, hue = hue, col = col, row = row, kind = self.kind,height=height,aspect=6/4,
                            errorbar='se')
             self.g.fig.canvas.manager.set_window_title(f'Brain region: {brain_region}')
             self.make_interactive()
 
-    def draw_psd(self, kind=False, params=None):
+    def draw_psd(self, kind=False, params=None,region=None):
         """
         
 
@@ -251,13 +260,17 @@ class GridGraph:
             default[i]=param
         #graph the facet plot with the first 4 categories
         x,hue,col,row = default
-        for brain_region, df in self.data.groupby('brain_region'):
+        if region == None:
+            data = self.data
+        else:
+            data = self.data[self.data['brain_region'] == region]
+        for brain_region, df in data.groupby('brain_region'):
             self.g=sns.relplot(data = df, x = x, y = self.graph_value, hue = hue, col = col, row = row, height=2.5,aspect=6/4,kind='line',
                                errorbar='se')
             self.g.fig.canvas.manager.set_window_title(f'Brain region: {brain_region}')
             self.make_interactive()
 
-    def draw_dist(self, params=None):
+    def draw_dist(self, params=None,region=None):
         """
         
 
@@ -294,6 +307,10 @@ class GridGraph:
             default[i]=param
         #graph the facet plot with the first 4 categories
         x,hue,col,row = default
+        if region == None:
+            data = self.data
+        else:
+            data = self.data[self.data['brain_region'] == region]
         for brain_region, df in self.data.groupby('brain_region'):
             self.g=sns.relplot(data = df, x = x, y = self.graph_value, hue = hue, col = col, row = row, height=2.5,aspect=6/4,kind='line',
                                errorbar='se')
@@ -304,12 +321,12 @@ class GridGraph:
                 if ' | ' in old_title: 
                     graph_dict={thing.split(" = ")[0]:thing.split(" = ")[1] for thing in old_title.split(" | ")}
                     (key1,val1),(key2,val2)=graph_dict.items()
-                    temp=self.data[(self.data[key1]==val1) & (self.data[key2]==val2)]
+                    temp=data[(data[key1]==val1) & (self.data[key2]==val2)]
                 elif ' = ' in old_title:
                     key1,val1=old_title.split(" = ")
-                    temp=self.data[(self.data[key1]==val1)]
+                    temp=data[(data[key1]==val1)]
                 else:
-                    temp=self.data
+                    temp=data
                     
                 for line_name,line in zip(temp[hue].unique(),axis.lines):
     

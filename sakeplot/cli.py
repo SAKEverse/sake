@@ -352,7 +352,7 @@ def plot(ctx, freq, plot_type, kind, window=30):
         from plots.psd_analysis import melted_power_dist
         # get psd data
         pdf_data = melted_power_dist(index_df, power_df, freq_range, categories)
-
+        
         # Graph interactive PSD
         GridGraph(ctx.obj['search_path'],  ctx.obj['psd_mat'],
                   pdf_data, x='power').draw_dist()

@@ -22,7 +22,7 @@ ui.setupUi(Dialog)
 Dialog.show()
 _translate = QtCore.QCoreApplication.translate
 script_dir=os.path.dirname(os.path.realpath(__file__))
-ui.plotType.addItems(['box','violin','boxen','bar','swarm','strip'])
+ui.plotType.addItems(['bar','violin','boxen','box','swarm','strip'])
 ui.plotValue.addItems(['Area','Ratio'])
 
 
@@ -90,7 +90,7 @@ def plotPower():
         msg=subprocess.run(["python", os.path.join(script_dir,r"cli.py"), "plot", '--plot_type','power_ratio','--kind',ui.plotType.currentText()])
         
     if msg.returncode != 0:
-        ui.errorBrowser.setText(_translate("SAKEDSP","Check Terminal for Errors"))
+        ui.errorBrowser.setText(_translate("SAKEDSP","Check Terminal for Errors (is your window longer than your traces?"))
     
 
     
@@ -166,8 +166,6 @@ ui.actionSettings.triggered.connect(lambda:openSettings())
 def get_current_img():
     subprocess.run(["python", os.path.join(script_dir,r"cli.py"), "checkpath"])
     
-    ctx.obj = main_check(ctx)
-    
     if os.path.isfile(ctx.obj['power_mat_verified_path']):
         img=r"images\bomb4.png"
     elif os.path.isfile(ctx.obj['power_mat_path']):
@@ -185,10 +183,21 @@ def get_current_img():
         ui.normGroup.clear()
         index=pd.read_csv(os.path.join(ctx.obj['search_path'],'index.csv'))
         ui.normCol.addItems(['transform']+list(index.columns)[list(index.columns).index('stop_time')+1:-1])
-        norm_col_changed()
+        col,group = ctx.obj['norm_groups']
+        if (col != ''): 
+            ui.normCol.setCurrentIndex(item_index(ui.normCol,col))
+            norm_col_changed()
+        if (col != '') and (group != ''): 
+            ui.normGroup.setCurrentIndex(item_index(ui.normGroup,group))
+            norm_changed()
     except Exception as e:
         # raise e
         pass
+
+def item_index(box,item):
+    for i in range(box.count()):
+        if box.itemText(i) == item:
+            return i
         
 # Execute if module runs as main program
 if __name__ == '__main__': 
@@ -203,9 +212,11 @@ if __name__ == '__main__':
     ui.pathEdit.setText(_translate("SAKEDSP", ctx.obj['search_path']))
     ui.threshEdit.setText(_translate("SAKEDSP", str(ctx.obj['outlier_threshold'])))    
     ui.checkBoxNorm.setChecked(ctx.obj['normalize'])
-    norm_changed()
+
 
     get_current_img()
+
+
     app.exec_()
     
     
