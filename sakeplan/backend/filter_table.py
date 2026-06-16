@@ -319,6 +319,11 @@ def create_index_array(file_data, user_data):
     drop_idx = user_data['Assigned Group Name'] == 'drop'
     user_data_drop = user_data[drop_idx]
     user_data_use = user_data[~drop_idx]
+
+    # drop rows where file length is 0
+    if (file_data['file_length'] == 0).any():
+        warning_str = 'Warning: some files contain channels with zero length.'
+        file_data = file_data[file_data['file_length'] > 0]
     
     for source in sources: # iterate over user data entries  
         
