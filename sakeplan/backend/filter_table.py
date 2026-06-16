@@ -371,7 +371,7 @@ def create_index_array(file_data, user_data):
     
     # check if groups were not detected
     if index_df.isnull().values.any():
-        warning_str = 'Warning: Some conditons were not found!!'
+        warning_str += 'Warning: Some conditons were not found!!'
     
     # put categories at end
     index_df = index_df[ [x for x in list(index_df.columns) if x not in group_columns] + group_columns]           
